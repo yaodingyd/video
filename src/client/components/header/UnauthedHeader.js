@@ -2,6 +2,7 @@ import React from 'react'
 import { Navbar, Nav, NavItem } from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router'
+import Logo from '../logo'
 
 function UnauthedHeader () {
   return (
@@ -9,7 +10,7 @@ function UnauthedHeader () {
       <Navbar.Header>
         <Navbar.Brand>
           <Link to={'/'}>
-            React App
+            <Logo />
           </Link>
         </Navbar.Brand>
         <Navbar.Toggle />

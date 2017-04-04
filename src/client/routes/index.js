@@ -4,7 +4,6 @@ import { Route, IndexRoute } from 'react-router'
 import AuthedApp from '../apps/authedApp'
 import UnauthedApp from '../apps/unauthedApp'
 
-import Hello from '../components/hello'
 import Welcome from '../containers/welcome'
 import Login from '../containers/login'
 import Signup from '../containers/signup'
@@ -17,7 +16,7 @@ const routes = (
       <Route path='signup' component={Signup} />
     </Route>
     <Route path='/dashboard' component={AuthedApp}>
-      <IndexRoute component={Hello} />
+      <IndexRoute component={Welcome} />
     </Route>
   </Route>
 )
