@@ -5,18 +5,17 @@ import AuthedApp from '../apps/authedApp'
 import UnauthedApp from '../apps/unauthedApp'
 
 import Welcome from '../containers/welcome'
-import Login from '../containers/login'
-import Signup from '../containers/signup'
+// import Login from '../containers/login'
+import Play from '@/containers/playlists'
 
 const routes = (
   <Route>
     <Route path='/' component={UnauthedApp}>
       <IndexRoute component={Welcome} />
-      <Route path='login' component={Login} />
-      <Route path='signup' component={Signup} />
+      <Route path='login' component={Welcome} />
     </Route>
-    <Route path='/dashboard' component={AuthedApp}>
-      <IndexRoute component={Welcome} />
+    <Route path='/playlists' component={AuthedApp}>
+      <IndexRoute component={Play} />
     </Route>
   </Route>
 )

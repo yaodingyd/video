@@ -1,4 +1,4 @@
-
+/* stylelint-disable */
 .item {
   width: calc(20% - 10px);
   min-width: calc(20% - 10px);
@@ -13,6 +13,7 @@
   transition: background 1s ease;
 
   .overlay {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0%, transparent 100%);
     padding: 20px;
     position: relative;
     height: 100%;
@@ -23,12 +24,14 @@
     .title {
       font-size: 22px;
       font-weight: 200;
+      color: #fff;
       opacity: 0;
       transition: opacity 0.25s ease;
     }
 
     .description {
       font-size: 14px;
+      color: #fff;
       margin-top: 100px;
       font-weight: 300;
       line-height: 1.6;

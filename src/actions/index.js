@@ -1,149 +1,85 @@
 import { browserHistory } from 'react-router'
-import { localStorage } from '../utilities'
-import 'whatwg-fetch'
+import axios from 'axios'
+import _ from 'lodash'
+import { handleClientLoad, handleStatus, loadPlaylists } from '@/api'
 
+export const LOGIN_INIT = 'LOGIN_INIT'
 export const LOGIN_REQUEST = 'LOGIN_REQUEST'
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS'
 export const LOGIN_FAILURE = 'LOGIN_FAILURE'
 export const LOGOUT_REQUEST = 'LOGOUT_REQUEST'
 export const LOGOUT_SUCCESS = 'LOGOUT_SUCCESS'
 export const LOGOUT_FAILURE = 'LOGOUT_FAILURE'
-export const SIGNUP_REQUEST = 'SIGNUP_REQUEST'
-export const SIGNUP_SUCCESS = 'SIGNUP_SUCCESS'
-export const SIGNUP_FAILURE = 'SIGNUP_FAILURE'
-export const FB_LOGIN_REQUEST = 'FB_LOGIN_REQUEST'
-export const FB_LOGIN_SUCCESS = 'FB_LOGIN_SUCCESS'
+export const GET_PLAYLISTS = 'GET_PLAYLISTS'
+export const GET_PLAYLIST_ITEMS = 'GET_PLAYLIST_ITEMS'
 
-const LOGIN_URL = '/auth/login'
-const SIGNUP_URL = '/auth/signup'
+const loginInit = () => ({
+  type: LOGIN_INIT
+})
 
-function authUser (creds, url) {
-  let config = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `email=${creds.email}&password=${creds.password}`
-  }
-
-  return dispatch => {
-    dispatch(requestLogin(creds))
-    return window.fetch(url, config)
-      .then(response =>
-        response.json().then(user => ({ user, response }))
-            ).then(({ user, response }) => {
-              if (!response.ok) {
-                dispatch(loginError(user.message))
-                return Promise.reject(user)
-              } else {
-                localStorage.setItem('token', user.token)
-                localStorage.setItem('name', user.username)
-                localStorage.setItem('id', user.id)
-                dispatch(receiveLogin(user))
-                browserHistory.push(`/dashboard`)
-              }
-            }).catch(err => console.log('Error: ', err))
-  }
+export const getLoginInit = () => (dispatch) => {
+  dispatch(loginInit())
+  handleClientLoad(updateSigninStatus)
 }
 
-const requestLogin = (creds) => ({
-  type: LOGIN_REQUEST,
-  isFetching: true,
-  isAuthenticated: false,
-  creds
+const loginRequest = () => ({
+  type: LOGIN_REQUEST
 })
 
-const receiveLogin = (userData) => ({
-  type: LOGIN_SUCCESS,
-  isFetching: false,
-  isAuthenticated: true,
-  userData
+const loginSuccess = () => ({
+  type: LOGIN_SUCCESS
 })
 
-const loginError = (message) => ({
-  type: LOGIN_FAILURE,
-  isFetching: false,
-  isAuthenticated: false,
-  message
+const logoutRequest = () => ({
+  type: LOGOUT_REQUEST
 })
 
-export const loginUser = (creds) => {
-  return authUser(creds, LOGIN_URL)
+const logoutSuccess = () => ({
+  type: LOGOUT_SUCCESS
+})
+
+export const getLogin = () => (dispatch) => {
+  dispatch(loginRequest())
+  handleStatus()
+  dispatch(loginSuccess())
 }
 
-const requestLogout = () => ({
-  type: LOGOUT_REQUEST,
-  isFetching: true,
-  isAuthenticated: true
-})
-
-const receiveLogout = () => ({
-  type: LOGOUT_SUCCESS,
-  isFetching: false,
-  isAuthenticated: false
-})
-
-export const logoutUser = () => (dispatch) => {
-  dispatch(requestLogout())
-  localStorage.removeItem('token')
-  localStorage.removeItem('name')
-  localStorage.removeItem('id')
-  dispatch(receiveLogout())
-  browserHistory.push(`/`)
+export const getLogout = () => (dispatch) => {
+  dispatch(logoutRequest())
+  handleStatus()
+  dispatch(logoutSuccess())
 }
 
-export const signupUser = (creds) => {
-  return authUser(creds, SIGNUP_URL)
-}
-
-const requestFBLogin = () => ({
-  type: FB_LOGIN_REQUEST,
-  isFetching: true,
-  isAuthenticated: false,
-  creds: ''
+const playlists = (items) => ({
+  type: GET_PLAYLISTS,
+  items
 })
 
-const receiveFBLogin = (user) => ({
-  type: FB_LOGIN_SUCCESS,
-  isFetching: false,
-  isAuthenticated: true,
-  id_token: user.id_token,
-  username: user.username,
-  userId: user.id
-})
-
-export const FBLoginUser = (user) => {
-  return dispatch => {
-    dispatch(requestFBLogin())
-    localStorage.setItem('id_token', user.id_token)
-    localStorage.setItem('username', user.username)
-    localStorage.setItem('userId', user.id)
-    dispatch(receiveFBLogin(user))
-    browserHistory.push(`/browse`)
-  }
+export const getPlaylists = () => (dispatch) => {
+  loadPlaylists((res) => {
+    const items = _.map(res.items, 'snippet')
+    dispatch(playlists(items))
+  })
 }
 
-export const reloginUser = (token) => {
-  let config = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `bearer ${token}`
-    }
-  }
+export const getPlaylistItems = () => (dispatch) => {
+  axios.get('result.json')
+    .then((res) => {
+      const items = _.map(res.data.items, 'snippet')
+      console.log(items)
+      dispatch(playlistItems(items))
+    })
+}
 
-  return dispatch => {
-    return window.fetch('/auth/relogin', config)
-      .then(response => {
-        if (!response.ok) {
-          localStorage.clear()
-        } else {
-          const user = {
-            token: localStorage.getItem('token'),
-            username: localStorage.getItem('name'),
-            id: localStorage.getItem('id')
-          }
-          dispatch(receiveLogin(user))
-          browserHistory.push(`/dashboard`)
-        }
-      }).catch(err => console.log('Error: ', err))
+const playlistItems = (items) => ({
+  type: GET_PLAYLIST_ITEMS,
+  items
+})
+
+function updateSigninStatus (isSignedin) {
+  if (isSignedin) {
+    browserHistory.push('/playlists')
+  } else {
+    browserHistory.push('/')
   }
 }

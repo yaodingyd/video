@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Navbar, Nav, NavDropdown, MenuItem, Glyphicon, NavItem, Row, Col } from 'react-bootstrap'
-import { logoutUser } from '../../actions'
+import { getLogout } from '../../actions'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import style from './style.css'
@@ -45,7 +45,7 @@ class AuthedHeader extends Component {
 
 const mapDispatchToProps = (dispatch) => ({
   handleSignout: () => {
-    dispatch(logoutUser())
+    dispatch(getLogout())
   }
 })
 

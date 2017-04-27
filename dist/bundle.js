@@ -59,7 +59,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "e6d543a5bd8a4f95e414"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "ad7277a1315e7f1373cf"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotMainModule = true; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
@@ -711,55 +711,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./index.js":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom__ = __webpack_require__("./node_modules/react-dom/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_dom__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__ = __webpack_require__("./node_modules/react-hot-loader/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_hot_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_react_hot_loader__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__src_client__ = __webpack_require__("./src/client/index.js");
-
-
-
-
-
-delete __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__["AppContainer"].prototype.unstable_handleError;
-
-function render(Component) {
-  __WEBPACK_IMPORTED_MODULE_1_react_dom___default.a.render(__WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-    __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__["AppContainer"],
-    null,
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Component, null)
-  ), document.getElementById('root'));
-}
-
-render(__WEBPACK_IMPORTED_MODULE_3__src_client__["default"]);
-
-// Hot Module Replacement API
-if (true) {
-  module.hot.accept("./src/client/index.js", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ __WEBPACK_IMPORTED_MODULE_3__src_client__ = __webpack_require__("./src/client/index.js"); (function () {
-    render(__WEBPACK_IMPORTED_MODULE_3__src_client__["default"]);
-  })(__WEBPACK_OUTDATED_DEPENDENCIES__); });
-}
-;
-
-var _temp = function () {
-  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
-    return;
-  }
-
-  __REACT_HOT_LOADER__.register(render, 'render', '/Users/yding/projects/authentication-demo-app/index.js');
-}();
-
-;
-
-/***/ }),
-
 /***/ "./node_modules/ansi-html/index.js":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -953,6 +904,1561 @@ module.exports = function () {
 	return /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]/g;
 };
 
+
+/***/ }),
+
+/***/ "./node_modules/axios/index.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__("./node_modules/axios/lib/axios.js");
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/adapters/xhr.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+var settle = __webpack_require__("./node_modules/axios/lib/core/settle.js");
+var buildURL = __webpack_require__("./node_modules/axios/lib/helpers/buildURL.js");
+var parseHeaders = __webpack_require__("./node_modules/axios/lib/helpers/parseHeaders.js");
+var isURLSameOrigin = __webpack_require__("./node_modules/axios/lib/helpers/isURLSameOrigin.js");
+var createError = __webpack_require__("./node_modules/axios/lib/core/createError.js");
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__("./node_modules/axios/lib/helpers/btoa.js");
+
+module.exports = function xhrAdapter(config) {
+  return new Promise(function dispatchXhrRequest(resolve, reject) {
+    var requestData = config.data;
+    var requestHeaders = config.headers;
+
+    if (utils.isFormData(requestData)) {
+      delete requestHeaders['Content-Type']; // Let the browser set it
+    }
+
+    var request = new XMLHttpRequest();
+    var loadEvent = 'onreadystatechange';
+    var xDomain = false;
+
+    // For IE 8/9 CORS support
+    // Only supports POST and GET calls and doesn't returns the response headers.
+    // DON'T do this for testing b/c XMLHttpRequest is mocked, not XDomainRequest.
+    if (process.env.NODE_ENV !== 'test' &&
+        typeof window !== 'undefined' &&
+        window.XDomainRequest && !('withCredentials' in request) &&
+        !isURLSameOrigin(config.url)) {
+      request = new window.XDomainRequest();
+      loadEvent = 'onload';
+      xDomain = true;
+      request.onprogress = function handleProgress() {};
+      request.ontimeout = function handleTimeout() {};
+    }
+
+    // HTTP basic authentication
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password || '';
+      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+    }
+
+    request.open(config.method.toUpperCase(), buildURL(config.url, config.params, config.paramsSerializer), true);
+
+    // Set the request timeout in MS
+    request.timeout = config.timeout;
+
+    // Listen for ready state
+    request[loadEvent] = function handleLoad() {
+      if (!request || (request.readyState !== 4 && !xDomain)) {
+        return;
+      }
+
+      // The request errored out and we didn't get a response, this will be
+      // handled by onerror instead
+      // With one exception: request that using file: protocol, most browsers
+      // will return status as 0 even though it's a successful request
+      if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+        return;
+      }
+
+      // Prepare the response
+      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+      var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
+      var response = {
+        data: responseData,
+        // IE sends 1223 instead of 204 (https://github.com/mzabriskie/axios/issues/201)
+        status: request.status === 1223 ? 204 : request.status,
+        statusText: request.status === 1223 ? 'No Content' : request.statusText,
+        headers: responseHeaders,
+        config: config,
+        request: request
+      };
+
+      settle(resolve, reject, response);
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle low level network errors
+    request.onerror = function handleError() {
+      // Real errors are hidden from us by the browser
+      // onerror should only fire if it's a network error
+      reject(createError('Network Error', config));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle timeout
+    request.ontimeout = function handleTimeout() {
+      reject(createError('timeout of ' + config.timeout + 'ms exceeded', config, 'ECONNABORTED'));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Add xsrf header
+    // This is only done if running in a standard browser environment.
+    // Specifically not if we're in a web worker, or react-native.
+    if (utils.isStandardBrowserEnv()) {
+      var cookies = __webpack_require__("./node_modules/axios/lib/helpers/cookies.js");
+
+      // Add xsrf header
+      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
+          cookies.read(config.xsrfCookieName) :
+          undefined;
+
+      if (xsrfValue) {
+        requestHeaders[config.xsrfHeaderName] = xsrfValue;
+      }
+    }
+
+    // Add headers to the request
+    if ('setRequestHeader' in request) {
+      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+          // Remove Content-Type if data is undefined
+          delete requestHeaders[key];
+        } else {
+          // Otherwise add header to the request
+          request.setRequestHeader(key, val);
+        }
+      });
+    }
+
+    // Add withCredentials to request if needed
+    if (config.withCredentials) {
+      request.withCredentials = true;
+    }
+
+    // Add responseType to request if needed
+    if (config.responseType) {
+      try {
+        request.responseType = config.responseType;
+      } catch (e) {
+        // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
+        // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
+        if (config.responseType !== 'json') {
+          throw e;
+        }
+      }
+    }
+
+    // Handle progress if needed
+    if (typeof config.onDownloadProgress === 'function') {
+      request.addEventListener('progress', config.onDownloadProgress);
+    }
+
+    // Not all browsers support upload events
+    if (typeof config.onUploadProgress === 'function' && request.upload) {
+      request.upload.addEventListener('progress', config.onUploadProgress);
+    }
+
+    if (config.cancelToken) {
+      // Handle cancellation
+      config.cancelToken.promise.then(function onCanceled(cancel) {
+        if (!request) {
+          return;
+        }
+
+        request.abort();
+        reject(cancel);
+        // Clean up request
+        request = null;
+      });
+    }
+
+    if (requestData === undefined) {
+      requestData = null;
+    }
+
+    // Send the request
+    request.send(requestData);
+  });
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/axios.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+var bind = __webpack_require__("./node_modules/axios/lib/helpers/bind.js");
+var Axios = __webpack_require__("./node_modules/axios/lib/core/Axios.js");
+var defaults = __webpack_require__("./node_modules/axios/lib/defaults.js");
+
+/**
+ * Create an instance of Axios
+ *
+ * @param {Object} defaultConfig The default config for the instance
+ * @return {Axios} A new instance of Axios
+ */
+function createInstance(defaultConfig) {
+  var context = new Axios(defaultConfig);
+  var instance = bind(Axios.prototype.request, context);
+
+  // Copy axios.prototype to instance
+  utils.extend(instance, Axios.prototype, context);
+
+  // Copy context to instance
+  utils.extend(instance, context);
+
+  return instance;
+}
+
+// Create the default instance to be exported
+var axios = createInstance(defaults);
+
+// Expose Axios class to allow class inheritance
+axios.Axios = Axios;
+
+// Factory for creating new instances
+axios.create = function create(instanceConfig) {
+  return createInstance(utils.merge(defaults, instanceConfig));
+};
+
+// Expose Cancel & CancelToken
+axios.Cancel = __webpack_require__("./node_modules/axios/lib/cancel/Cancel.js");
+axios.CancelToken = __webpack_require__("./node_modules/axios/lib/cancel/CancelToken.js");
+axios.isCancel = __webpack_require__("./node_modules/axios/lib/cancel/isCancel.js");
+
+// Expose all/spread
+axios.all = function all(promises) {
+  return Promise.all(promises);
+};
+axios.spread = __webpack_require__("./node_modules/axios/lib/helpers/spread.js");
+
+module.exports = axios;
+
+// Allow use of default import syntax in TypeScript
+module.exports.default = axios;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/cancel/Cancel.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * A `Cancel` is an object that is thrown when an operation is canceled.
+ *
+ * @class
+ * @param {string=} message The message.
+ */
+function Cancel(message) {
+  this.message = message;
+}
+
+Cancel.prototype.toString = function toString() {
+  return 'Cancel' + (this.message ? ': ' + this.message : '');
+};
+
+Cancel.prototype.__CANCEL__ = true;
+
+module.exports = Cancel;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/cancel/CancelToken.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Cancel = __webpack_require__("./node_modules/axios/lib/cancel/Cancel.js");
+
+/**
+ * A `CancelToken` is an object that can be used to request cancellation of an operation.
+ *
+ * @class
+ * @param {Function} executor The executor function.
+ */
+function CancelToken(executor) {
+  if (typeof executor !== 'function') {
+    throw new TypeError('executor must be a function.');
+  }
+
+  var resolvePromise;
+  this.promise = new Promise(function promiseExecutor(resolve) {
+    resolvePromise = resolve;
+  });
+
+  var token = this;
+  executor(function cancel(message) {
+    if (token.reason) {
+      // Cancellation has already been requested
+      return;
+    }
+
+    token.reason = new Cancel(message);
+    resolvePromise(token.reason);
+  });
+}
+
+/**
+ * Throws a `Cancel` if cancellation has been requested.
+ */
+CancelToken.prototype.throwIfRequested = function throwIfRequested() {
+  if (this.reason) {
+    throw this.reason;
+  }
+};
+
+/**
+ * Returns an object that contains a new `CancelToken` and a function that, when called,
+ * cancels the `CancelToken`.
+ */
+CancelToken.source = function source() {
+  var cancel;
+  var token = new CancelToken(function executor(c) {
+    cancel = c;
+  });
+  return {
+    token: token,
+    cancel: cancel
+  };
+};
+
+module.exports = CancelToken;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/cancel/isCancel.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function isCancel(value) {
+  return !!(value && value.__CANCEL__);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/Axios.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var defaults = __webpack_require__("./node_modules/axios/lib/defaults.js");
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+var InterceptorManager = __webpack_require__("./node_modules/axios/lib/core/InterceptorManager.js");
+var dispatchRequest = __webpack_require__("./node_modules/axios/lib/core/dispatchRequest.js");
+var isAbsoluteURL = __webpack_require__("./node_modules/axios/lib/helpers/isAbsoluteURL.js");
+var combineURLs = __webpack_require__("./node_modules/axios/lib/helpers/combineURLs.js");
+
+/**
+ * Create a new instance of Axios
+ *
+ * @param {Object} instanceConfig The default config for the instance
+ */
+function Axios(instanceConfig) {
+  this.defaults = instanceConfig;
+  this.interceptors = {
+    request: new InterceptorManager(),
+    response: new InterceptorManager()
+  };
+}
+
+/**
+ * Dispatch a request
+ *
+ * @param {Object} config The config specific for this request (merged with this.defaults)
+ */
+Axios.prototype.request = function request(config) {
+  /*eslint no-param-reassign:0*/
+  // Allow for axios('example/url'[, config]) a la fetch API
+  if (typeof config === 'string') {
+    config = utils.merge({
+      url: arguments[0]
+    }, arguments[1]);
+  }
+
+  config = utils.merge(defaults, this.defaults, { method: 'get' }, config);
+
+  // Support baseURL config
+  if (config.baseURL && !isAbsoluteURL(config.url)) {
+    config.url = combineURLs(config.baseURL, config.url);
+  }
+
+  // Hook up interceptors middleware
+  var chain = [dispatchRequest, undefined];
+  var promise = Promise.resolve(config);
+
+  this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
+    chain.unshift(interceptor.fulfilled, interceptor.rejected);
+  });
+
+  this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
+    chain.push(interceptor.fulfilled, interceptor.rejected);
+  });
+
+  while (chain.length) {
+    promise = promise.then(chain.shift(), chain.shift());
+  }
+
+  return promise;
+};
+
+// Provide aliases for supported request methods
+utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
+  /*eslint func-names:0*/
+  Axios.prototype[method] = function(url, config) {
+    return this.request(utils.merge(config || {}, {
+      method: method,
+      url: url
+    }));
+  };
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  /*eslint func-names:0*/
+  Axios.prototype[method] = function(url, data, config) {
+    return this.request(utils.merge(config || {}, {
+      method: method,
+      url: url,
+      data: data
+    }));
+  };
+});
+
+module.exports = Axios;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/InterceptorManager.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+function InterceptorManager() {
+  this.handlers = [];
+}
+
+/**
+ * Add a new interceptor to the stack
+ *
+ * @param {Function} fulfilled The function to handle `then` for a `Promise`
+ * @param {Function} rejected The function to handle `reject` for a `Promise`
+ *
+ * @return {Number} An ID used to remove interceptor later
+ */
+InterceptorManager.prototype.use = function use(fulfilled, rejected) {
+  this.handlers.push({
+    fulfilled: fulfilled,
+    rejected: rejected
+  });
+  return this.handlers.length - 1;
+};
+
+/**
+ * Remove an interceptor from the stack
+ *
+ * @param {Number} id The ID that was returned by `use`
+ */
+InterceptorManager.prototype.eject = function eject(id) {
+  if (this.handlers[id]) {
+    this.handlers[id] = null;
+  }
+};
+
+/**
+ * Iterate over all the registered interceptors
+ *
+ * This method is particularly useful for skipping over any
+ * interceptors that may have become `null` calling `eject`.
+ *
+ * @param {Function} fn The function to call for each interceptor
+ */
+InterceptorManager.prototype.forEach = function forEach(fn) {
+  utils.forEach(this.handlers, function forEachHandler(h) {
+    if (h !== null) {
+      fn(h);
+    }
+  });
+};
+
+module.exports = InterceptorManager;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/createError.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var enhanceError = __webpack_require__("./node_modules/axios/lib/core/enhanceError.js");
+
+/**
+ * Create an Error with the specified message, config, error code, and response.
+ *
+ * @param {string} message The error message.
+ * @param {Object} config The config.
+ * @param {string} [code] The error code (for example, 'ECONNABORTED').
+ @ @param {Object} [response] The response.
+ * @returns {Error} The created error.
+ */
+module.exports = function createError(message, config, code, response) {
+  var error = new Error(message);
+  return enhanceError(error, config, code, response);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/dispatchRequest.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+var transformData = __webpack_require__("./node_modules/axios/lib/core/transformData.js");
+var isCancel = __webpack_require__("./node_modules/axios/lib/cancel/isCancel.js");
+var defaults = __webpack_require__("./node_modules/axios/lib/defaults.js");
+
+/**
+ * Throws a `Cancel` if cancellation has been requested.
+ */
+function throwIfCancellationRequested(config) {
+  if (config.cancelToken) {
+    config.cancelToken.throwIfRequested();
+  }
+}
+
+/**
+ * Dispatch a request to the server using the configured adapter.
+ *
+ * @param {object} config The config that is to be used for the request
+ * @returns {Promise} The Promise to be fulfilled
+ */
+module.exports = function dispatchRequest(config) {
+  throwIfCancellationRequested(config);
+
+  // Ensure headers exist
+  config.headers = config.headers || {};
+
+  // Transform request data
+  config.data = transformData(
+    config.data,
+    config.headers,
+    config.transformRequest
+  );
+
+  // Flatten headers
+  config.headers = utils.merge(
+    config.headers.common || {},
+    config.headers[config.method] || {},
+    config.headers || {}
+  );
+
+  utils.forEach(
+    ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
+    function cleanHeaderConfig(method) {
+      delete config.headers[method];
+    }
+  );
+
+  var adapter = config.adapter || defaults.adapter;
+
+  return adapter(config).then(function onAdapterResolution(response) {
+    throwIfCancellationRequested(config);
+
+    // Transform response data
+    response.data = transformData(
+      response.data,
+      response.headers,
+      config.transformResponse
+    );
+
+    return response;
+  }, function onAdapterRejection(reason) {
+    if (!isCancel(reason)) {
+      throwIfCancellationRequested(config);
+
+      // Transform response data
+      if (reason && reason.response) {
+        reason.response.data = transformData(
+          reason.response.data,
+          reason.response.headers,
+          config.transformResponse
+        );
+      }
+    }
+
+    return Promise.reject(reason);
+  });
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/enhanceError.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Update an Error with the specified config, error code, and response.
+ *
+ * @param {Error} error The error to update.
+ * @param {Object} config The config.
+ * @param {string} [code] The error code (for example, 'ECONNABORTED').
+ @ @param {Object} [response] The response.
+ * @returns {Error} The error.
+ */
+module.exports = function enhanceError(error, config, code, response) {
+  error.config = config;
+  if (code) {
+    error.code = code;
+  }
+  error.response = response;
+  return error;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/settle.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var createError = __webpack_require__("./node_modules/axios/lib/core/createError.js");
+
+/**
+ * Resolve or reject a Promise based on response status.
+ *
+ * @param {Function} resolve A function that resolves the promise.
+ * @param {Function} reject A function that rejects the promise.
+ * @param {object} response The response.
+ */
+module.exports = function settle(resolve, reject, response) {
+  var validateStatus = response.config.validateStatus;
+  // Note: status is not exposed by XDomainRequest
+  if (!response.status || !validateStatus || validateStatus(response.status)) {
+    resolve(response);
+  } else {
+    reject(createError(
+      'Request failed with status code ' + response.status,
+      response.config,
+      null,
+      response
+    ));
+  }
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/core/transformData.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+/**
+ * Transform the data for a request or a response
+ *
+ * @param {Object|String} data The data to be transformed
+ * @param {Array} headers The headers for the request or response
+ * @param {Array|Function} fns A single function or Array of functions
+ * @returns {*} The resulting transformed data
+ */
+module.exports = function transformData(data, headers, fns) {
+  /*eslint no-param-reassign:0*/
+  utils.forEach(fns, function transform(fn) {
+    data = fn(data, headers);
+  });
+
+  return data;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/defaults.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+var normalizeHeaderName = __webpack_require__("./node_modules/axios/lib/helpers/normalizeHeaderName.js");
+
+var DEFAULT_CONTENT_TYPE = {
+  'Content-Type': 'application/x-www-form-urlencoded'
+};
+
+function setContentTypeIfUnset(headers, value) {
+  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+    headers['Content-Type'] = value;
+  }
+}
+
+function getDefaultAdapter() {
+  var adapter;
+  if (typeof XMLHttpRequest !== 'undefined') {
+    // For browsers use XHR adapter
+    adapter = __webpack_require__("./node_modules/axios/lib/adapters/xhr.js");
+  } else if (typeof process !== 'undefined') {
+    // For node use HTTP adapter
+    adapter = __webpack_require__("./node_modules/axios/lib/adapters/xhr.js");
+  }
+  return adapter;
+}
+
+var defaults = {
+  adapter: getDefaultAdapter(),
+
+  transformRequest: [function transformRequest(data, headers) {
+    normalizeHeaderName(headers, 'Content-Type');
+    if (utils.isFormData(data) ||
+      utils.isArrayBuffer(data) ||
+      utils.isBuffer(data) ||
+      utils.isStream(data) ||
+      utils.isFile(data) ||
+      utils.isBlob(data)
+    ) {
+      return data;
+    }
+    if (utils.isArrayBufferView(data)) {
+      return data.buffer;
+    }
+    if (utils.isURLSearchParams(data)) {
+      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+      return data.toString();
+    }
+    if (utils.isObject(data)) {
+      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+      return JSON.stringify(data);
+    }
+    return data;
+  }],
+
+  transformResponse: [function transformResponse(data) {
+    /*eslint no-param-reassign:0*/
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) { /* Ignore */ }
+    }
+    return data;
+  }],
+
+  timeout: 0,
+
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+
+  maxContentLength: -1,
+
+  validateStatus: function validateStatus(status) {
+    return status >= 200 && status < 300;
+  }
+};
+
+defaults.headers = {
+  common: {
+    'Accept': 'application/json, text/plain, */*'
+  }
+};
+
+utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+  defaults.headers[method] = {};
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+});
+
+module.exports = defaults;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/bind.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function bind(fn, thisArg) {
+  return function wrap() {
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
+    return fn.apply(thisArg, args);
+  };
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/btoa.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// btoa polyfill for IE<10 courtesy https://github.com/davidchambers/Base64.js
+
+var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+function E() {
+  this.message = 'String contains an invalid character';
+}
+E.prototype = new Error;
+E.prototype.code = 5;
+E.prototype.name = 'InvalidCharacterError';
+
+function btoa(input) {
+  var str = String(input);
+  var output = '';
+  for (
+    // initialize result and counter
+    var block, charCode, idx = 0, map = chars;
+    // if the next str index does not exist:
+    //   change the mapping table to "="
+    //   check if d has no fractional digits
+    str.charAt(idx | 0) || (map = '=', idx % 1);
+    // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
+    output += map.charAt(63 & block >> 8 - idx % 1 * 8)
+  ) {
+    charCode = str.charCodeAt(idx += 3 / 4);
+    if (charCode > 0xFF) {
+      throw new E();
+    }
+    block = block << 8 | charCode;
+  }
+  return output;
+}
+
+module.exports = btoa;
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/buildURL.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+function encode(val) {
+  return encodeURIComponent(val).
+    replace(/%40/gi, '@').
+    replace(/%3A/gi, ':').
+    replace(/%24/g, '$').
+    replace(/%2C/gi, ',').
+    replace(/%20/g, '+').
+    replace(/%5B/gi, '[').
+    replace(/%5D/gi, ']');
+}
+
+/**
+ * Build a URL by appending params to the end
+ *
+ * @param {string} url The base of the url (e.g., http://www.google.com)
+ * @param {object} [params] The params to be appended
+ * @returns {string} The formatted url
+ */
+module.exports = function buildURL(url, params, paramsSerializer) {
+  /*eslint no-param-reassign:0*/
+  if (!params) {
+    return url;
+  }
+
+  var serializedParams;
+  if (paramsSerializer) {
+    serializedParams = paramsSerializer(params);
+  } else if (utils.isURLSearchParams(params)) {
+    serializedParams = params.toString();
+  } else {
+    var parts = [];
+
+    utils.forEach(params, function serialize(val, key) {
+      if (val === null || typeof val === 'undefined') {
+        return;
+      }
+
+      if (utils.isArray(val)) {
+        key = key + '[]';
+      }
+
+      if (!utils.isArray(val)) {
+        val = [val];
+      }
+
+      utils.forEach(val, function parseValue(v) {
+        if (utils.isDate(v)) {
+          v = v.toISOString();
+        } else if (utils.isObject(v)) {
+          v = JSON.stringify(v);
+        }
+        parts.push(encode(key) + '=' + encode(v));
+      });
+    });
+
+    serializedParams = parts.join('&');
+  }
+
+  if (serializedParams) {
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+  }
+
+  return url;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/combineURLs.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Creates a new URL by combining the specified URLs
+ *
+ * @param {string} baseURL The base URL
+ * @param {string} relativeURL The relative URL
+ * @returns {string} The combined URL
+ */
+module.exports = function combineURLs(baseURL, relativeURL) {
+  return relativeURL
+    ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
+    : baseURL;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/cookies.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+module.exports = (
+  utils.isStandardBrowserEnv() ?
+
+  // Standard browser envs support document.cookie
+  (function standardBrowserEnv() {
+    return {
+      write: function write(name, value, expires, path, domain, secure) {
+        var cookie = [];
+        cookie.push(name + '=' + encodeURIComponent(value));
+
+        if (utils.isNumber(expires)) {
+          cookie.push('expires=' + new Date(expires).toGMTString());
+        }
+
+        if (utils.isString(path)) {
+          cookie.push('path=' + path);
+        }
+
+        if (utils.isString(domain)) {
+          cookie.push('domain=' + domain);
+        }
+
+        if (secure === true) {
+          cookie.push('secure');
+        }
+
+        document.cookie = cookie.join('; ');
+      },
+
+      read: function read(name) {
+        var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+        return (match ? decodeURIComponent(match[3]) : null);
+      },
+
+      remove: function remove(name) {
+        this.write(name, '', Date.now() - 86400000);
+      }
+    };
+  })() :
+
+  // Non standard browser env (web workers, react-native) lack needed support.
+  (function nonStandardBrowserEnv() {
+    return {
+      write: function write() {},
+      read: function read() { return null; },
+      remove: function remove() {}
+    };
+  })()
+);
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/isAbsoluteURL.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Determines whether the specified URL is absolute
+ *
+ * @param {string} url The URL to test
+ * @returns {boolean} True if the specified URL is absolute, otherwise false
+ */
+module.exports = function isAbsoluteURL(url) {
+  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+  // by any combination of letters, digits, plus, period, or hyphen.
+  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/isURLSameOrigin.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+module.exports = (
+  utils.isStandardBrowserEnv() ?
+
+  // Standard browser envs have full support of the APIs needed to test
+  // whether the request URL is of the same origin as current location.
+  (function standardBrowserEnv() {
+    var msie = /(msie|trident)/i.test(navigator.userAgent);
+    var urlParsingNode = document.createElement('a');
+    var originURL;
+
+    /**
+    * Parse a URL to discover it's components
+    *
+    * @param {String} url The URL to be parsed
+    * @returns {Object}
+    */
+    function resolveURL(url) {
+      var href = url;
+
+      if (msie) {
+        // IE needs attribute set twice to normalize properties
+        urlParsingNode.setAttribute('href', href);
+        href = urlParsingNode.href;
+      }
+
+      urlParsingNode.setAttribute('href', href);
+
+      // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+      return {
+        href: urlParsingNode.href,
+        protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+        host: urlParsingNode.host,
+        search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+        hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+        hostname: urlParsingNode.hostname,
+        port: urlParsingNode.port,
+        pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
+                  urlParsingNode.pathname :
+                  '/' + urlParsingNode.pathname
+      };
+    }
+
+    originURL = resolveURL(window.location.href);
+
+    /**
+    * Determine if a URL shares the same origin as the current location
+    *
+    * @param {String} requestURL The URL to test
+    * @returns {boolean} True if URL shares the same origin, otherwise false
+    */
+    return function isURLSameOrigin(requestURL) {
+      var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
+      return (parsed.protocol === originURL.protocol &&
+            parsed.host === originURL.host);
+    };
+  })() :
+
+  // Non standard browser envs (web workers, react-native) lack needed support.
+  (function nonStandardBrowserEnv() {
+    return function isURLSameOrigin() {
+      return true;
+    };
+  })()
+);
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/normalizeHeaderName.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+module.exports = function normalizeHeaderName(headers, normalizedName) {
+  utils.forEach(headers, function processHeader(value, name) {
+    if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
+      headers[normalizedName] = value;
+      delete headers[name];
+    }
+  });
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/parseHeaders.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__("./node_modules/axios/lib/utils.js");
+
+/**
+ * Parse headers into an object
+ *
+ * ```
+ * Date: Wed, 27 Aug 2014 08:58:49 GMT
+ * Content-Type: application/json
+ * Connection: keep-alive
+ * Transfer-Encoding: chunked
+ * ```
+ *
+ * @param {String} headers Headers needing to be parsed
+ * @returns {Object} Headers parsed into an object
+ */
+module.exports = function parseHeaders(headers) {
+  var parsed = {};
+  var key;
+  var val;
+  var i;
+
+  if (!headers) { return parsed; }
+
+  utils.forEach(headers.split('\n'), function parser(line) {
+    i = line.indexOf(':');
+    key = utils.trim(line.substr(0, i)).toLowerCase();
+    val = utils.trim(line.substr(i + 1));
+
+    if (key) {
+      parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
+    }
+  });
+
+  return parsed;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/helpers/spread.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Syntactic sugar for invoking a function and expanding an array for arguments.
+ *
+ * Common use case would be to use `Function.prototype.apply`.
+ *
+ *  ```js
+ *  function f(x, y, z) {}
+ *  var args = [1, 2, 3];
+ *  f.apply(null, args);
+ *  ```
+ *
+ * With `spread` this example can be re-written.
+ *
+ *  ```js
+ *  spread(function(x, y, z) {})([1, 2, 3]);
+ *  ```
+ *
+ * @param {Function} callback
+ * @returns {Function}
+ */
+module.exports = function spread(callback) {
+  return function wrap(arr) {
+    return callback.apply(null, arr);
+  };
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/axios/lib/utils.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(Buffer) {
+
+var bind = __webpack_require__("./node_modules/axios/lib/helpers/bind.js");
+
+/*global toString:true*/
+
+// utils is a library of generic helper functions non-specific to axios
+
+var toString = Object.prototype.toString;
+
+/**
+ * Determine if a value is an Array
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Array, otherwise false
+ */
+function isArray(val) {
+  return toString.call(val) === '[object Array]';
+}
+
+/**
+ * Determine if a value is a Node Buffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Node Buffer, otherwise false
+ */
+function isBuffer(val) {
+  return ((typeof Buffer !== 'undefined') && (Buffer.isBuffer) && (Buffer.isBuffer(val)));
+}
+
+/**
+ * Determine if a value is an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an ArrayBuffer, otherwise false
+ */
+function isArrayBuffer(val) {
+  return toString.call(val) === '[object ArrayBuffer]';
+}
+
+/**
+ * Determine if a value is a FormData
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an FormData, otherwise false
+ */
+function isFormData(val) {
+  return (typeof FormData !== 'undefined') && (val instanceof FormData);
+}
+
+/**
+ * Determine if a value is a view on an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
+ */
+function isArrayBufferView(val) {
+  var result;
+  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
+    result = ArrayBuffer.isView(val);
+  } else {
+    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
+  }
+  return result;
+}
+
+/**
+ * Determine if a value is a String
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a String, otherwise false
+ */
+function isString(val) {
+  return typeof val === 'string';
+}
+
+/**
+ * Determine if a value is a Number
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Number, otherwise false
+ */
+function isNumber(val) {
+  return typeof val === 'number';
+}
+
+/**
+ * Determine if a value is undefined
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if the value is undefined, otherwise false
+ */
+function isUndefined(val) {
+  return typeof val === 'undefined';
+}
+
+/**
+ * Determine if a value is an Object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Object, otherwise false
+ */
+function isObject(val) {
+  return val !== null && typeof val === 'object';
+}
+
+/**
+ * Determine if a value is a Date
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Date, otherwise false
+ */
+function isDate(val) {
+  return toString.call(val) === '[object Date]';
+}
+
+/**
+ * Determine if a value is a File
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a File, otherwise false
+ */
+function isFile(val) {
+  return toString.call(val) === '[object File]';
+}
+
+/**
+ * Determine if a value is a Blob
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Blob, otherwise false
+ */
+function isBlob(val) {
+  return toString.call(val) === '[object Blob]';
+}
+
+/**
+ * Determine if a value is a Function
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Function, otherwise false
+ */
+function isFunction(val) {
+  return toString.call(val) === '[object Function]';
+}
+
+/**
+ * Determine if a value is a Stream
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Stream, otherwise false
+ */
+function isStream(val) {
+  return isObject(val) && isFunction(val.pipe);
+}
+
+/**
+ * Determine if a value is a URLSearchParams object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a URLSearchParams object, otherwise false
+ */
+function isURLSearchParams(val) {
+  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+}
+
+/**
+ * Trim excess whitespace off the beginning and end of a string
+ *
+ * @param {String} str The String to trim
+ * @returns {String} The String freed of excess whitespace
+ */
+function trim(str) {
+  return str.replace(/^\s*/, '').replace(/\s*$/, '');
+}
+
+/**
+ * Determine if we're running in a standard browser environment
+ *
+ * This allows axios to run in a web worker, and react-native.
+ * Both environments support XMLHttpRequest, but not fully standard globals.
+ *
+ * web workers:
+ *  typeof window -> undefined
+ *  typeof document -> undefined
+ *
+ * react-native:
+ *  navigator.product -> 'ReactNative'
+ */
+function isStandardBrowserEnv() {
+  if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
+    return false;
+  }
+  return (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined'
+  );
+}
+
+/**
+ * Iterate over an Array or an Object invoking a function for each item.
+ *
+ * If `obj` is an Array callback will be called passing
+ * the value, index, and complete array for each item.
+ *
+ * If 'obj' is an Object callback will be called passing
+ * the value, key, and complete object for each property.
+ *
+ * @param {Object|Array} obj The object to iterate
+ * @param {Function} fn The callback to invoke for each item
+ */
+function forEach(obj, fn) {
+  // Don't bother if no value provided
+  if (obj === null || typeof obj === 'undefined') {
+    return;
+  }
+
+  // Force an array if not already something iterable
+  if (typeof obj !== 'object' && !isArray(obj)) {
+    /*eslint no-param-reassign:0*/
+    obj = [obj];
+  }
+
+  if (isArray(obj)) {
+    // Iterate over array values
+    for (var i = 0, l = obj.length; i < l; i++) {
+      fn.call(null, obj[i], i, obj);
+    }
+  } else {
+    // Iterate over object keys
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        fn.call(null, obj[key], key, obj);
+      }
+    }
+  }
+}
+
+/**
+ * Accepts varargs expecting each argument to be an object, then
+ * immutably merges the properties of each object and returns result.
+ *
+ * When multiple objects contain the same key the later object in
+ * the arguments list will take precedence.
+ *
+ * Example:
+ *
+ * ```js
+ * var result = merge({foo: 123}, {foo: 456});
+ * console.log(result.foo); // outputs 456
+ * ```
+ *
+ * @param {Object} obj1 Object to merge
+ * @returns {Object} Result of all merge properties
+ */
+function merge(/* obj1, obj2, obj3, ... */) {
+  var result = {};
+  function assignValue(val, key) {
+    if (typeof result[key] === 'object' && typeof val === 'object') {
+      result[key] = merge(result[key], val);
+    } else {
+      result[key] = val;
+    }
+  }
+
+  for (var i = 0, l = arguments.length; i < l; i++) {
+    forEach(arguments[i], assignValue);
+  }
+  return result;
+}
+
+/**
+ * Extends object a by mutably adding to it the properties of object b.
+ *
+ * @param {Object} a The object to be extended
+ * @param {Object} b The object to copy properties from
+ * @param {Object} thisArg The object to bind function to
+ * @return {Object} The resulting value of object a
+ */
+function extend(a, b, thisArg) {
+  forEach(b, function assignValue(val, key) {
+    if (thisArg && typeof val === 'function') {
+      a[key] = bind(val, thisArg);
+    } else {
+      a[key] = val;
+    }
+  });
+  return a;
+}
+
+module.exports = {
+  isArray: isArray,
+  isArrayBuffer: isArrayBuffer,
+  isBuffer: isBuffer,
+  isFormData: isFormData,
+  isArrayBufferView: isArrayBufferView,
+  isString: isString,
+  isNumber: isNumber,
+  isObject: isObject,
+  isUndefined: isUndefined,
+  isDate: isDate,
+  isFile: isFile,
+  isBlob: isBlob,
+  isFunction: isFunction,
+  isStream: isStream,
+  isURLSearchParams: isURLSearchParams,
+  isStandardBrowserEnv: isStandardBrowserEnv,
+  forEach: forEach,
+  merge: merge,
+  extend: extend,
+  trim: trim
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/buffer/index.js").Buffer))
 
 /***/ }),
 
@@ -1169,6 +2675,1926 @@ exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.d
 } : function (obj) {
   return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default && obj !== _symbol2.default.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
 };
+
+/***/ }),
+
+/***/ "./node_modules/base64-js/index.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.byteLength = byteLength
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+for (var i = 0, len = code.length; i < len; ++i) {
+  lookup[i] = code[i]
+  revLookup[code.charCodeAt(i)] = i
+}
+
+revLookup['-'.charCodeAt(0)] = 62
+revLookup['_'.charCodeAt(0)] = 63
+
+function placeHoldersCount (b64) {
+  var len = b64.length
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // the number of equal signs (place holders)
+  // if there are two placeholders, than the two characters before it
+  // represent one byte
+  // if there is only one, then the three characters before it represent 2 bytes
+  // this is just a cheap hack to not do indexOf twice
+  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+}
+
+function byteLength (b64) {
+  // base64 is 4/3 + up to two characters of the original data
+  return b64.length * 3 / 4 - placeHoldersCount(b64)
+}
+
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
+  var len = b64.length
+  placeHolders = placeHoldersCount(b64)
+
+  arr = new Arr(len * 3 / 4 - placeHolders)
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  l = placeHolders > 0 ? len - 4 : len
+
+  var L = 0
+
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
+    arr[L++] = (tmp >> 16) & 0xFF
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  if (placeHolders === 2) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[L++] = tmp & 0xFF
+  } else if (placeHolders === 1) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp
+  var output = []
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    output.push(tripletToBase64(tmp))
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  var tmp
+  var len = uint8.length
+  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+  var output = ''
+  var parts = []
+  var maxChunkLength = 16383 // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1]
+    output += lookup[tmp >> 2]
+    output += lookup[(tmp << 4) & 0x3F]
+    output += '=='
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
+    output += lookup[tmp >> 10]
+    output += lookup[(tmp >> 4) & 0x3F]
+    output += lookup[(tmp << 2) & 0x3F]
+    output += '='
+  }
+
+  parts.push(output)
+
+  return parts.join('')
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/buffer/index.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
+/* eslint-disable no-proto */
+
+
+
+var base64 = __webpack_require__("./node_modules/base64-js/index.js")
+var ieee754 = __webpack_require__("./node_modules/ieee754/index.js")
+var isArray = __webpack_require__("./node_modules/isarray/index.js")
+
+exports.Buffer = Buffer
+exports.SlowBuffer = SlowBuffer
+exports.INSPECT_MAX_BYTES = 50
+
+/**
+ * If `Buffer.TYPED_ARRAY_SUPPORT`:
+ *   === true    Use Uint8Array implementation (fastest)
+ *   === false   Use Object implementation (most compatible, even IE6)
+ *
+ * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+ * Opera 11.6+, iOS 4.2+.
+ *
+ * Due to various browser bugs, sometimes the Object implementation will be used even
+ * when the browser supports typed arrays.
+ *
+ * Note:
+ *
+ *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
+ *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
+ *
+ *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
+ *
+ *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
+ *     incorrect length in some situations.
+
+ * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
+ * get the Object implementation, which is slower but behaves correctly.
+ */
+Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+  ? global.TYPED_ARRAY_SUPPORT
+  : typedArraySupport()
+
+/*
+ * Export kMaxLength after typed array support is determined.
+ */
+exports.kMaxLength = kMaxLength()
+
+function typedArraySupport () {
+  try {
+    var arr = new Uint8Array(1)
+    arr.__proto__ = {__proto__: Uint8Array.prototype, foo: function () { return 42 }}
+    return arr.foo() === 42 && // typed array instances can be augmented
+        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+  } catch (e) {
+    return false
+  }
+}
+
+function kMaxLength () {
+  return Buffer.TYPED_ARRAY_SUPPORT
+    ? 0x7fffffff
+    : 0x3fffffff
+}
+
+function createBuffer (that, length) {
+  if (kMaxLength() < length) {
+    throw new RangeError('Invalid typed array length')
+  }
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    // Return an augmented `Uint8Array` instance, for best performance
+    that = new Uint8Array(length)
+    that.__proto__ = Buffer.prototype
+  } else {
+    // Fallback: Return an object instance of the Buffer class
+    if (that === null) {
+      that = new Buffer(length)
+    }
+    that.length = length
+  }
+
+  return that
+}
+
+/**
+ * The Buffer constructor returns instances of `Uint8Array` that have their
+ * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+ * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+ * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+ * returns a single octet.
+ *
+ * The `Uint8Array` prototype remains unmodified.
+ */
+
+function Buffer (arg, encodingOrOffset, length) {
+  if (!Buffer.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer)) {
+    return new Buffer(arg, encodingOrOffset, length)
+  }
+
+  // Common case.
+  if (typeof arg === 'number') {
+    if (typeof encodingOrOffset === 'string') {
+      throw new Error(
+        'If encoding is specified then the first argument must be a string'
+      )
+    }
+    return allocUnsafe(this, arg)
+  }
+  return from(this, arg, encodingOrOffset, length)
+}
+
+Buffer.poolSize = 8192 // not used by this implementation
+
+// TODO: Legacy, not needed anymore. Remove in next major version.
+Buffer._augment = function (arr) {
+  arr.__proto__ = Buffer.prototype
+  return arr
+}
+
+function from (that, value, encodingOrOffset, length) {
+  if (typeof value === 'number') {
+    throw new TypeError('"value" argument must not be a number')
+  }
+
+  if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) {
+    return fromArrayBuffer(that, value, encodingOrOffset, length)
+  }
+
+  if (typeof value === 'string') {
+    return fromString(that, value, encodingOrOffset)
+  }
+
+  return fromObject(that, value)
+}
+
+/**
+ * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+ * if value is a number.
+ * Buffer.from(str[, encoding])
+ * Buffer.from(array)
+ * Buffer.from(buffer)
+ * Buffer.from(arrayBuffer[, byteOffset[, length]])
+ **/
+Buffer.from = function (value, encodingOrOffset, length) {
+  return from(null, value, encodingOrOffset, length)
+}
+
+if (Buffer.TYPED_ARRAY_SUPPORT) {
+  Buffer.prototype.__proto__ = Uint8Array.prototype
+  Buffer.__proto__ = Uint8Array
+  if (typeof Symbol !== 'undefined' && Symbol.species &&
+      Buffer[Symbol.species] === Buffer) {
+    // Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
+    Object.defineProperty(Buffer, Symbol.species, {
+      value: null,
+      configurable: true
+    })
+  }
+}
+
+function assertSize (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('"size" argument must be a number')
+  } else if (size < 0) {
+    throw new RangeError('"size" argument must not be negative')
+  }
+}
+
+function alloc (that, size, fill, encoding) {
+  assertSize(size)
+  if (size <= 0) {
+    return createBuffer(that, size)
+  }
+  if (fill !== undefined) {
+    // Only pay attention to encoding if it's a string. This
+    // prevents accidentally sending in a number that would
+    // be interpretted as a start offset.
+    return typeof encoding === 'string'
+      ? createBuffer(that, size).fill(fill, encoding)
+      : createBuffer(that, size).fill(fill)
+  }
+  return createBuffer(that, size)
+}
+
+/**
+ * Creates a new filled Buffer instance.
+ * alloc(size[, fill[, encoding]])
+ **/
+Buffer.alloc = function (size, fill, encoding) {
+  return alloc(null, size, fill, encoding)
+}
+
+function allocUnsafe (that, size) {
+  assertSize(size)
+  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+    for (var i = 0; i < size; ++i) {
+      that[i] = 0
+    }
+  }
+  return that
+}
+
+/**
+ * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * */
+Buffer.allocUnsafe = function (size) {
+  return allocUnsafe(null, size)
+}
+/**
+ * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+ */
+Buffer.allocUnsafeSlow = function (size) {
+  return allocUnsafe(null, size)
+}
+
+function fromString (that, string, encoding) {
+  if (typeof encoding !== 'string' || encoding === '') {
+    encoding = 'utf8'
+  }
+
+  if (!Buffer.isEncoding(encoding)) {
+    throw new TypeError('"encoding" must be a valid string encoding')
+  }
+
+  var length = byteLength(string, encoding) | 0
+  that = createBuffer(that, length)
+
+  var actual = that.write(string, encoding)
+
+  if (actual !== length) {
+    // Writing a hex string, for example, that contains invalid characters will
+    // cause everything after the first invalid character to be ignored. (e.g.
+    // 'abxxcd' will be treated as 'ab')
+    that = that.slice(0, actual)
+  }
+
+  return that
+}
+
+function fromArrayLike (that, array) {
+  var length = array.length < 0 ? 0 : checked(array.length) | 0
+  that = createBuffer(that, length)
+  for (var i = 0; i < length; i += 1) {
+    that[i] = array[i] & 255
+  }
+  return that
+}
+
+function fromArrayBuffer (that, array, byteOffset, length) {
+  array.byteLength // this throws if `array` is not a valid ArrayBuffer
+
+  if (byteOffset < 0 || array.byteLength < byteOffset) {
+    throw new RangeError('\'offset\' is out of bounds')
+  }
+
+  if (array.byteLength < byteOffset + (length || 0)) {
+    throw new RangeError('\'length\' is out of bounds')
+  }
+
+  if (byteOffset === undefined && length === undefined) {
+    array = new Uint8Array(array)
+  } else if (length === undefined) {
+    array = new Uint8Array(array, byteOffset)
+  } else {
+    array = new Uint8Array(array, byteOffset, length)
+  }
+
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    // Return an augmented `Uint8Array` instance, for best performance
+    that = array
+    that.__proto__ = Buffer.prototype
+  } else {
+    // Fallback: Return an object instance of the Buffer class
+    that = fromArrayLike(that, array)
+  }
+  return that
+}
+
+function fromObject (that, obj) {
+  if (Buffer.isBuffer(obj)) {
+    var len = checked(obj.length) | 0
+    that = createBuffer(that, len)
+
+    if (that.length === 0) {
+      return that
+    }
+
+    obj.copy(that, 0, 0, len)
+    return that
+  }
+
+  if (obj) {
+    if ((typeof ArrayBuffer !== 'undefined' &&
+        obj.buffer instanceof ArrayBuffer) || 'length' in obj) {
+      if (typeof obj.length !== 'number' || isnan(obj.length)) {
+        return createBuffer(that, 0)
+      }
+      return fromArrayLike(that, obj)
+    }
+
+    if (obj.type === 'Buffer' && isArray(obj.data)) {
+      return fromArrayLike(that, obj.data)
+    }
+  }
+
+  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+}
+
+function checked (length) {
+  // Note: cannot use `length < kMaxLength()` here because that fails when
+  // length is NaN (which is otherwise coerced to zero.)
+  if (length >= kMaxLength()) {
+    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
+                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
+  }
+  return length | 0
+}
+
+function SlowBuffer (length) {
+  if (+length != length) { // eslint-disable-line eqeqeq
+    length = 0
+  }
+  return Buffer.alloc(+length)
+}
+
+Buffer.isBuffer = function isBuffer (b) {
+  return !!(b != null && b._isBuffer)
+}
+
+Buffer.compare = function compare (a, b) {
+  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
+    throw new TypeError('Arguments must be Buffers')
+  }
+
+  if (a === b) return 0
+
+  var x = a.length
+  var y = b.length
+
+  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+    if (a[i] !== b[i]) {
+      x = a[i]
+      y = b[i]
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+Buffer.isEncoding = function isEncoding (encoding) {
+  switch (String(encoding).toLowerCase()) {
+    case 'hex':
+    case 'utf8':
+    case 'utf-8':
+    case 'ascii':
+    case 'latin1':
+    case 'binary':
+    case 'base64':
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      return true
+    default:
+      return false
+  }
+}
+
+Buffer.concat = function concat (list, length) {
+  if (!isArray(list)) {
+    throw new TypeError('"list" argument must be an Array of Buffers')
+  }
+
+  if (list.length === 0) {
+    return Buffer.alloc(0)
+  }
+
+  var i
+  if (length === undefined) {
+    length = 0
+    for (i = 0; i < list.length; ++i) {
+      length += list[i].length
+    }
+  }
+
+  var buffer = Buffer.allocUnsafe(length)
+  var pos = 0
+  for (i = 0; i < list.length; ++i) {
+    var buf = list[i]
+    if (!Buffer.isBuffer(buf)) {
+      throw new TypeError('"list" argument must be an Array of Buffers')
+    }
+    buf.copy(buffer, pos)
+    pos += buf.length
+  }
+  return buffer
+}
+
+function byteLength (string, encoding) {
+  if (Buffer.isBuffer(string)) {
+    return string.length
+  }
+  if (typeof ArrayBuffer !== 'undefined' && typeof ArrayBuffer.isView === 'function' &&
+      (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
+    return string.byteLength
+  }
+  if (typeof string !== 'string') {
+    string = '' + string
+  }
+
+  var len = string.length
+  if (len === 0) return 0
+
+  // Use a for loop to avoid recursion
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'latin1':
+      case 'binary':
+        return len
+      case 'utf8':
+      case 'utf-8':
+      case undefined:
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+Buffer.byteLength = byteLength
+
+function slowToString (encoding, start, end) {
+  var loweredCase = false
+
+  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
+  // property of a typed array.
+
+  // This behaves neither like String nor Uint8Array in that we set start/end
+  // to their upper/lower bounds if the value passed is out of range.
+  // undefined is handled specially as per ECMA-262 6th Edition,
+  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
+  if (start === undefined || start < 0) {
+    start = 0
+  }
+  // Return early if start > this.length. Done here to prevent potential uint32
+  // coercion fail below.
+  if (start > this.length) {
+    return ''
+  }
+
+  if (end === undefined || end > this.length) {
+    end = this.length
+  }
+
+  if (end <= 0) {
+    return ''
+  }
+
+  // Force coersion to uint32. This will also coerce falsey/NaN values to 0.
+  end >>>= 0
+  start >>>= 0
+
+  if (end <= start) {
+    return ''
+  }
+
+  if (!encoding) encoding = 'utf8'
+
+  while (true) {
+    switch (encoding) {
+      case 'hex':
+        return hexSlice(this, start, end)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Slice(this, start, end)
+
+      case 'ascii':
+        return asciiSlice(this, start, end)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Slice(this, start, end)
+
+      case 'base64':
+        return base64Slice(this, start, end)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return utf16leSlice(this, start, end)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = (encoding + '').toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+
+// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
+// Buffer instances.
+Buffer.prototype._isBuffer = true
+
+function swap (b, n, m) {
+  var i = b[n]
+  b[n] = b[m]
+  b[m] = i
+}
+
+Buffer.prototype.swap16 = function swap16 () {
+  var len = this.length
+  if (len % 2 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 16-bits')
+  }
+  for (var i = 0; i < len; i += 2) {
+    swap(this, i, i + 1)
+  }
+  return this
+}
+
+Buffer.prototype.swap32 = function swap32 () {
+  var len = this.length
+  if (len % 4 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 32-bits')
+  }
+  for (var i = 0; i < len; i += 4) {
+    swap(this, i, i + 3)
+    swap(this, i + 1, i + 2)
+  }
+  return this
+}
+
+Buffer.prototype.swap64 = function swap64 () {
+  var len = this.length
+  if (len % 8 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 64-bits')
+  }
+  for (var i = 0; i < len; i += 8) {
+    swap(this, i, i + 7)
+    swap(this, i + 1, i + 6)
+    swap(this, i + 2, i + 5)
+    swap(this, i + 3, i + 4)
+  }
+  return this
+}
+
+Buffer.prototype.toString = function toString () {
+  var length = this.length | 0
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
+}
+
+Buffer.prototype.equals = function equals (b) {
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return true
+  return Buffer.compare(this, b) === 0
+}
+
+Buffer.prototype.inspect = function inspect () {
+  var str = ''
+  var max = exports.INSPECT_MAX_BYTES
+  if (this.length > 0) {
+    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
+    if (this.length > max) str += ' ... '
+  }
+  return '<Buffer ' + str + '>'
+}
+
+Buffer.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+  if (!Buffer.isBuffer(target)) {
+    throw new TypeError('Argument must be a Buffer')
+  }
+
+  if (start === undefined) {
+    start = 0
+  }
+  if (end === undefined) {
+    end = target ? target.length : 0
+  }
+  if (thisStart === undefined) {
+    thisStart = 0
+  }
+  if (thisEnd === undefined) {
+    thisEnd = this.length
+  }
+
+  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+    throw new RangeError('out of range index')
+  }
+
+  if (thisStart >= thisEnd && start >= end) {
+    return 0
+  }
+  if (thisStart >= thisEnd) {
+    return -1
+  }
+  if (start >= end) {
+    return 1
+  }
+
+  start >>>= 0
+  end >>>= 0
+  thisStart >>>= 0
+  thisEnd >>>= 0
+
+  if (this === target) return 0
+
+  var x = thisEnd - thisStart
+  var y = end - start
+  var len = Math.min(x, y)
+
+  var thisCopy = this.slice(thisStart, thisEnd)
+  var targetCopy = target.slice(start, end)
+
+  for (var i = 0; i < len; ++i) {
+    if (thisCopy[i] !== targetCopy[i]) {
+      x = thisCopy[i]
+      y = targetCopy[i]
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+//
+// Arguments:
+// - buffer - a Buffer to search
+// - val - a string, Buffer, or number
+// - byteOffset - an index into `buffer`; will be clamped to an int32
+// - encoding - an optional encoding, relevant is val is a string
+// - dir - true for indexOf, false for lastIndexOf
+function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
+  // Empty buffer means no match
+  if (buffer.length === 0) return -1
+
+  // Normalize byteOffset
+  if (typeof byteOffset === 'string') {
+    encoding = byteOffset
+    byteOffset = 0
+  } else if (byteOffset > 0x7fffffff) {
+    byteOffset = 0x7fffffff
+  } else if (byteOffset < -0x80000000) {
+    byteOffset = -0x80000000
+  }
+  byteOffset = +byteOffset  // Coerce to Number.
+  if (isNaN(byteOffset)) {
+    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+    byteOffset = dir ? 0 : (buffer.length - 1)
+  }
+
+  // Normalize byteOffset: negative offsets start from the end of the buffer
+  if (byteOffset < 0) byteOffset = buffer.length + byteOffset
+  if (byteOffset >= buffer.length) {
+    if (dir) return -1
+    else byteOffset = buffer.length - 1
+  } else if (byteOffset < 0) {
+    if (dir) byteOffset = 0
+    else return -1
+  }
+
+  // Normalize val
+  if (typeof val === 'string') {
+    val = Buffer.from(val, encoding)
+  }
+
+  // Finally, search either indexOf (if dir is true) or lastIndexOf
+  if (Buffer.isBuffer(val)) {
+    // Special case: looking for empty string/buffer always fails
+    if (val.length === 0) {
+      return -1
+    }
+    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
+  } else if (typeof val === 'number') {
+    val = val & 0xFF // Search for a byte value [0-255]
+    if (Buffer.TYPED_ARRAY_SUPPORT &&
+        typeof Uint8Array.prototype.indexOf === 'function') {
+      if (dir) {
+        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
+      } else {
+        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
+      }
+    }
+    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
+  }
+
+  throw new TypeError('val must be string, number or Buffer')
+}
+
+function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
+  var indexSize = 1
+  var arrLength = arr.length
+  var valLength = val.length
+
+  if (encoding !== undefined) {
+    encoding = String(encoding).toLowerCase()
+    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
+        encoding === 'utf16le' || encoding === 'utf-16le') {
+      if (arr.length < 2 || val.length < 2) {
+        return -1
+      }
+      indexSize = 2
+      arrLength /= 2
+      valLength /= 2
+      byteOffset /= 2
+    }
+  }
+
+  function read (buf, i) {
+    if (indexSize === 1) {
+      return buf[i]
+    } else {
+      return buf.readUInt16BE(i * indexSize)
+    }
+  }
+
+  var i
+  if (dir) {
+    var foundIndex = -1
+    for (i = byteOffset; i < arrLength; i++) {
+      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+        if (foundIndex === -1) foundIndex = i
+        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
+      } else {
+        if (foundIndex !== -1) i -= i - foundIndex
+        foundIndex = -1
+      }
+    }
+  } else {
+    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength
+    for (i = byteOffset; i >= 0; i--) {
+      var found = true
+      for (var j = 0; j < valLength; j++) {
+        if (read(arr, i + j) !== read(val, j)) {
+          found = false
+          break
+        }
+      }
+      if (found) return i
+    }
+  }
+
+  return -1
+}
+
+Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
+  return this.indexOf(val, byteOffset, encoding) !== -1
+}
+
+Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
+}
+
+Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
+}
+
+function hexWrite (buf, string, offset, length) {
+  offset = Number(offset) || 0
+  var remaining = buf.length - offset
+  if (!length) {
+    length = remaining
+  } else {
+    length = Number(length)
+    if (length > remaining) {
+      length = remaining
+    }
+  }
+
+  // must be an even number of digits
+  var strLen = string.length
+  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
+
+  if (length > strLen / 2) {
+    length = strLen / 2
+  }
+  for (var i = 0; i < length; ++i) {
+    var parsed = parseInt(string.substr(i * 2, 2), 16)
+    if (isNaN(parsed)) return i
+    buf[offset + i] = parsed
+  }
+  return i
+}
+
+function utf8Write (buf, string, offset, length) {
+  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+function asciiWrite (buf, string, offset, length) {
+  return blitBuffer(asciiToBytes(string), buf, offset, length)
+}
+
+function latin1Write (buf, string, offset, length) {
+  return asciiWrite(buf, string, offset, length)
+}
+
+function base64Write (buf, string, offset, length) {
+  return blitBuffer(base64ToBytes(string), buf, offset, length)
+}
+
+function ucs2Write (buf, string, offset, length) {
+  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+Buffer.prototype.write = function write (string, offset, length, encoding) {
+  // Buffer#write(string)
+  if (offset === undefined) {
+    encoding = 'utf8'
+    length = this.length
+    offset = 0
+  // Buffer#write(string, encoding)
+  } else if (length === undefined && typeof offset === 'string') {
+    encoding = offset
+    length = this.length
+    offset = 0
+  // Buffer#write(string, offset[, length][, encoding])
+  } else if (isFinite(offset)) {
+    offset = offset | 0
+    if (isFinite(length)) {
+      length = length | 0
+      if (encoding === undefined) encoding = 'utf8'
+    } else {
+      encoding = length
+      length = undefined
+    }
+  // legacy write(string, encoding, offset, length) - remove in v0.13
+  } else {
+    throw new Error(
+      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
+    )
+  }
+
+  var remaining = this.length - offset
+  if (length === undefined || length > remaining) length = remaining
+
+  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
+    throw new RangeError('Attempt to write outside buffer bounds')
+  }
+
+  if (!encoding) encoding = 'utf8'
+
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'hex':
+        return hexWrite(this, string, offset, length)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Write(this, string, offset, length)
+
+      case 'ascii':
+        return asciiWrite(this, string, offset, length)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Write(this, string, offset, length)
+
+      case 'base64':
+        // Warning: maxLength not taken into account in base64Write
+        return base64Write(this, string, offset, length)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return ucs2Write(this, string, offset, length)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+
+Buffer.prototype.toJSON = function toJSON () {
+  return {
+    type: 'Buffer',
+    data: Array.prototype.slice.call(this._arr || this, 0)
+  }
+}
+
+function base64Slice (buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return base64.fromByteArray(buf)
+  } else {
+    return base64.fromByteArray(buf.slice(start, end))
+  }
+}
+
+function utf8Slice (buf, start, end) {
+  end = Math.min(buf.length, end)
+  var res = []
+
+  var i = start
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
+    }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+    }
+
+    res.push(codePoint)
+    i += bytesPerSequence
+  }
+
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
+}
+
+function asciiSlice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i] & 0x7F)
+  }
+  return ret
+}
+
+function latin1Slice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i])
+  }
+  return ret
+}
+
+function hexSlice (buf, start, end) {
+  var len = buf.length
+
+  if (!start || start < 0) start = 0
+  if (!end || end < 0 || end > len) end = len
+
+  var out = ''
+  for (var i = start; i < end; ++i) {
+    out += toHex(buf[i])
+  }
+  return out
+}
+
+function utf16leSlice (buf, start, end) {
+  var bytes = buf.slice(start, end)
+  var res = ''
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256)
+  }
+  return res
+}
+
+Buffer.prototype.slice = function slice (start, end) {
+  var len = this.length
+  start = ~~start
+  end = end === undefined ? len : ~~end
+
+  if (start < 0) {
+    start += len
+    if (start < 0) start = 0
+  } else if (start > len) {
+    start = len
+  }
+
+  if (end < 0) {
+    end += len
+    if (end < 0) end = 0
+  } else if (end > len) {
+    end = len
+  }
+
+  if (end < start) end = start
+
+  var newBuf
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    newBuf = this.subarray(start, end)
+    newBuf.__proto__ = Buffer.prototype
+  } else {
+    var sliceLen = end - start
+    newBuf = new Buffer(sliceLen, undefined)
+    for (var i = 0; i < sliceLen; ++i) {
+      newBuf[i] = this[i + start]
+    }
+  }
+
+  return newBuf
+}
+
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */
+function checkOffset (offset, ext, length) {
+  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
+}
+
+Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    checkOffset(offset, byteLength, this.length)
+  }
+
+  var val = this[offset + --byteLength]
+  var mul = 1
+  while (byteLength > 0 && (mul *= 0x100)) {
+    val += this[offset + --byteLength] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  return this[offset]
+}
+
+Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return this[offset] | (this[offset + 1] << 8)
+}
+
+Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return (this[offset] << 8) | this[offset + 1]
+}
+
+Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return ((this[offset]) |
+      (this[offset + 1] << 8) |
+      (this[offset + 2] << 16)) +
+      (this[offset + 3] * 0x1000000)
+}
+
+Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] * 0x1000000) +
+    ((this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    this[offset + 3])
+}
+
+Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var i = byteLength
+  var mul = 1
+  var val = this[offset + --i]
+  while (i > 0 && (mul *= 0x100)) {
+    val += this[offset + --i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  if (!(this[offset] & 0x80)) return (this[offset])
+  return ((0xff - this[offset] + 1) * -1)
+}
+
+Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset] | (this[offset + 1] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset + 1] | (this[offset] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset]) |
+    (this[offset + 1] << 8) |
+    (this[offset + 2] << 16) |
+    (this[offset + 3] << 24)
+}
+
+Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] << 24) |
+    (this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    (this[offset + 3])
+}
+
+Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, true, 23, 4)
+}
+
+Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, false, 23, 4)
+}
+
+Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, true, 52, 8)
+}
+
+Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, false, 52, 8)
+}
+
+function checkInt (buf, value, offset, ext, max, min) {
+  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
+  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+}
+
+Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var mul = 1
+  var i = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+function objectWriteUInt16 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffff + value + 1
+  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
+    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+      (littleEndian ? i : 1 - i) * 8
+  }
+}
+
+Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff)
+    this[offset + 1] = (value >>> 8)
+  } else {
+    objectWriteUInt16(this, value, offset, true)
+  }
+  return offset + 2
+}
+
+Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8)
+    this[offset + 1] = (value & 0xff)
+  } else {
+    objectWriteUInt16(this, value, offset, false)
+  }
+  return offset + 2
+}
+
+function objectWriteUInt32 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffffffff + value + 1
+  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
+    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
+  }
+}
+
+Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset + 3] = (value >>> 24)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 1] = (value >>> 8)
+    this[offset] = (value & 0xff)
+  } else {
+    objectWriteUInt32(this, value, offset, true)
+  }
+  return offset + 4
+}
+
+Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24)
+    this[offset + 1] = (value >>> 16)
+    this[offset + 2] = (value >>> 8)
+    this[offset + 3] = (value & 0xff)
+  } else {
+    objectWriteUInt32(this, value, offset, false)
+  }
+  return offset + 4
+}
+
+Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = 0
+  var mul = 1
+  var sub = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  var sub = 0
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+  if (value < 0) value = 0xff + value + 1
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff)
+    this[offset + 1] = (value >>> 8)
+  } else {
+    objectWriteUInt16(this, value, offset, true)
+  }
+  return offset + 2
+}
+
+Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8)
+    this[offset + 1] = (value & 0xff)
+  } else {
+    objectWriteUInt16(this, value, offset, false)
+  }
+  return offset + 2
+}
+
+Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff)
+    this[offset + 1] = (value >>> 8)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 3] = (value >>> 24)
+  } else {
+    objectWriteUInt32(this, value, offset, true)
+  }
+  return offset + 4
+}
+
+Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (value < 0) value = 0xffffffff + value + 1
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24)
+    this[offset + 1] = (value >>> 16)
+    this[offset + 2] = (value >>> 8)
+    this[offset + 3] = (value & 0xff)
+  } else {
+    objectWriteUInt32(this, value, offset, false)
+  }
+  return offset + 4
+}
+
+function checkIEEE754 (buf, value, offset, ext, max, min) {
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+  if (offset < 0) throw new RangeError('Index out of range')
+}
+
+function writeFloat (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
+  }
+  ieee754.write(buf, value, offset, littleEndian, 23, 4)
+  return offset + 4
+}
+
+Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, false, noAssert)
+}
+
+function writeDouble (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
+  }
+  ieee754.write(buf, value, offset, littleEndian, 52, 8)
+  return offset + 8
+}
+
+Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, false, noAssert)
+}
+
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!start) start = 0
+  if (!end && end !== 0) end = this.length
+  if (targetStart >= target.length) targetStart = target.length
+  if (!targetStart) targetStart = 0
+  if (end > 0 && end < start) end = start
+
+  // Copy 0 bytes; we're done
+  if (end === start) return 0
+  if (target.length === 0 || this.length === 0) return 0
+
+  // Fatal error conditions
+  if (targetStart < 0) {
+    throw new RangeError('targetStart out of bounds')
+  }
+  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length) end = this.length
+  if (target.length - targetStart < end - start) {
+    end = target.length - targetStart + start
+  }
+
+  var len = end - start
+  var i
+
+  if (this === target && start < targetStart && targetStart < end) {
+    // descending copy from end
+    for (i = len - 1; i >= 0; --i) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+    // ascending copy from start
+    for (i = 0; i < len; ++i) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else {
+    Uint8Array.prototype.set.call(
+      target,
+      this.subarray(start, start + len),
+      targetStart
+    )
+  }
+
+  return len
+}
+
+// Usage:
+//    buffer.fill(number[, offset[, end]])
+//    buffer.fill(buffer[, offset[, end]])
+//    buffer.fill(string[, offset[, end]][, encoding])
+Buffer.prototype.fill = function fill (val, start, end, encoding) {
+  // Handle string cases:
+  if (typeof val === 'string') {
+    if (typeof start === 'string') {
+      encoding = start
+      start = 0
+      end = this.length
+    } else if (typeof end === 'string') {
+      encoding = end
+      end = this.length
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if (code < 256) {
+        val = code
+      }
+    }
+    if (encoding !== undefined && typeof encoding !== 'string') {
+      throw new TypeError('encoding must be a string')
+    }
+    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
+      throw new TypeError('Unknown encoding: ' + encoding)
+    }
+  } else if (typeof val === 'number') {
+    val = val & 255
+  }
+
+  // Invalid ranges are not set to a default, so can range check early.
+  if (start < 0 || this.length < start || this.length < end) {
+    throw new RangeError('Out of range index')
+  }
+
+  if (end <= start) {
+    return this
+  }
+
+  start = start >>> 0
+  end = end === undefined ? this.length : end >>> 0
+
+  if (!val) val = 0
+
+  var i
+  if (typeof val === 'number') {
+    for (i = start; i < end; ++i) {
+      this[i] = val
+    }
+  } else {
+    var bytes = Buffer.isBuffer(val)
+      ? val
+      : utf8ToBytes(new Buffer(val, encoding).toString())
+    var len = bytes.length
+    for (i = 0; i < end - start; ++i) {
+      this[i + start] = bytes[i % len]
+    }
+  }
+
+  return this
+}
+
+// HELPER FUNCTIONS
+// ================
+
+var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
+
+function base64clean (str) {
+  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
+  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+  while (str.length % 4 !== 0) {
+    str = str + '='
+  }
+  return str
+}
+
+function stringtrim (str) {
+  if (str.trim) return str.trim()
+  return str.replace(/^\s+|\s+$/g, '')
+}
+
+function toHex (n) {
+  if (n < 16) return '0' + n.toString(16)
+  return n.toString(16)
+}
+
+function utf8ToBytes (string, units) {
+  units = units || Infinity
+  var codePoint
+  var length = string.length
+  var leadSurrogate = null
+  var bytes = []
+
+  for (var i = 0; i < length; ++i) {
+    codePoint = string.charCodeAt(i)
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (!leadSurrogate) {
+        // no lead yet
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        }
+
+        // valid lead
+        leadSurrogate = codePoint
+
+        continue
+      }
+
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+        leadSurrogate = codePoint
+        continue
+      }
+
+      // valid surrogate pair
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+    }
+
+    leadSurrogate = null
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x110000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else {
+      throw new Error('Invalid code point')
+    }
+  }
+
+  return bytes
+}
+
+function asciiToBytes (str) {
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    // Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF)
+  }
+  return byteArray
+}
+
+function utf16leToBytes (str, units) {
+  var c, hi, lo
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    if ((units -= 2) < 0) break
+
+    c = str.charCodeAt(i)
+    hi = c >> 8
+    lo = c % 256
+    byteArray.push(lo)
+    byteArray.push(hi)
+  }
+
+  return byteArray
+}
+
+function base64ToBytes (str) {
+  return base64.toByteArray(base64clean(str))
+}
+
+function blitBuffer (src, dst, offset, length) {
+  for (var i = 0; i < length; ++i) {
+    if ((i + offset >= dst.length) || (i >= src.length)) break
+    dst[i + offset] = src[i]
+  }
+  return i
+}
+
+function isnan (val) {
+  return val !== val // eslint-disable-line no-self-compare
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
 
@@ -2908,7 +6334,7 @@ for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList'
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/components/style.css":
+/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/header/style.css":
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
@@ -2916,16 +6342,33 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "._3-1lNcvh5HvjTzKKObZxZk {\n  background: #000;\n  color: #fff;\n}\n", ""]);
+exports.push([module.i, "._60R_kc87L9ri65-Njelv_ {\n  min-width: 250px;\n}\n", ""]);
 
 // exports
 exports.locals = {
-	"hello": "_3-1lNcvh5HvjTzKKObZxZk"
+	"dropdown": "_60R_kc87L9ri65-Njelv_"
 };
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/containers/login/style.css":
+/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/logo/style.css":
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+exports.push([module.i, "@import url(https://fonts.googleapis.com/css?family=Audiowide);", ""]);
+
+// module
+exports.push([module.i, "._1Dzz-tTXI45DDtACz4bfUh {\n  font-size: 2rem;\n  -webkit-transition: all 0.125s ease;\n  transition: all 0.125s ease;\n  font-family: 'Audiowide', cursive;\n  color: #b81d24;\n}\n\n._1Dzz-tTXI45DDtACz4bfUh:hover {\n  color: #fff;\n  margin-top: 2px;\n}\n", ""]);
+
+// exports
+exports.locals = {
+	"logo": "_1Dzz-tTXI45DDtACz4bfUh"
+};
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/login/style.css":
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
@@ -2933,17 +6376,35 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "._37h7txY5DMoaP5829gQs6O {\n  padding-top: 100px;\n  padding-bottom: 50px;\n  width: 300px;\n  margin: 0 auto -150px;\n  min-height: 100vh;\n}\n\n._3FK5blunu5m61pEMsGjGEG {\n  font-family: \"Montserrat\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  text-transform: uppercase;\n  font-weight: 700;\n  line-height: 3rem;\n  margin-bottom: 1.25rem;\n}\n\n._1PgssqrPy-x5Ts59eu3HAB {\n  display: block;\n  padding-bottom: 1rem;\n}\n\n.OWWj3T6iD8AKZvvbIWnkg {\n  box-sizing: border-box;\n  font-size: 1rem;\n  border: 1px solid #b3b3b3;\n  border-radius: 2px;\n  display: block;\n  -webkit-appearance: none;\n  width: 100%;\n  max-width: 500px;\n  color: #000;\n  line-height: 18px;\n  padding: 10px 11px;\n  height: 44px;\n}\n\n._3grdniCgY4FvoCiy6ZlvLD {\n  width: 100%;\n}\n\n._3E3WtCzJ-dsLmlgwlzjkYr {\n  margin-top: 20px;\n}\n\n._3K98Kq7gWvqa-HZrL5Q5MK {\n  color: red;\n}\n", ""]);
+exports.push([module.i, ".vs4OCHj2vOBJXhdlRrwhY {\n  padding-top: 100px;\n  padding-bottom: 50px;\n  width: 300px;\n  margin: 0 auto -150px;\n  min-height: 100vh;\n}\n\n._2rtsV2XV_Mcq9XK-I0bS2 {\n  font-family: \"Montserrat\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  text-transform: uppercase;\n  font-weight: 700;\n  line-height: 3rem;\n  margin-bottom: 1.25rem;\n}\n\n._13Zo-1lHorf179bEX3PRaC {\n  display: block;\n  padding-bottom: 2rem;\n}\n\n._1ExRVQElIURrxQ7SmO8395 {\n  box-sizing: border-box;\n  font-size: 1rem;\n  border: 1px solid #b3b3b3;\n  border-radius: 2px;\n  display: block;\n  -webkit-appearance: none;\n  width: 100%;\n  max-width: 500px;\n  color: #000;\n  line-height: 18px;\n  padding: 10px 11px;\n  height: 44px;\n}\n\n._2_sYgGlNMWYuUkyNKRkOnu {\n  width: 100%;\n}\n\n.rsvE09op1kFg9yHMahk-I {\n  margin-top: 20px;\n}\n\n._2hG6GwnYK6ZCnKtEP2gUqG {\n  color: red;\n  position: absolute;\n}\n", ""]);
 
 // exports
 exports.locals = {
-	"auth": "_37h7txY5DMoaP5829gQs6O",
-	"heading": "_3FK5blunu5m61pEMsGjGEG",
-	"group": "_1PgssqrPy-x5Ts59eu3HAB",
-	"input": "OWWj3T6iD8AKZvvbIWnkg",
-	"button": "_3grdniCgY4FvoCiy6ZlvLD",
-	"link": "_3E3WtCzJ-dsLmlgwlzjkYr",
-	"error": "_3K98Kq7gWvqa-HZrL5Q5MK"
+	"auth": "vs4OCHj2vOBJXhdlRrwhY",
+	"heading": "_2rtsV2XV_Mcq9XK-I0bS2",
+	"group": "_13Zo-1lHorf179bEX3PRaC",
+	"input": "_1ExRVQElIURrxQ7SmO8395",
+	"button": "_2_sYgGlNMWYuUkyNKRkOnu",
+	"link": "rsvE09op1kFg9yHMahk-I",
+	"error": "_2hG6GwnYK6ZCnKtEP2gUqG"
+};
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/welcome/style.css":
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, "body {\n  background: #101010;\n}\n\n._1uUaOjUPJlc1uqrPXlNXRD {\n  color: #fff;\n  text-align: left;\n  position: relative;\n  left: 10%;\n  top: 30vh;\n}\n\n._29yfagX4yPam4MjYGdWWXw {\n  margin-top: 3rem;\n  display: inline-block;\n  background: #f40612;\n  color: #fff;\n  padding: 0.8rem 1.5rem;\n  border-radius: 2px;\n  box-shadow: 1 1 1px 1px;\n}\n", ""]);
+
+// exports
+exports.locals = {
+	"intro": "_1uUaOjUPJlc1uqrPXlNXRD",
+	"login": "_29yfagX4yPam4MjYGdWWXw"
 };
 
 /***/ }),
@@ -6655,6 +10116,97 @@ module.exports = XmlEntities;
 
 /***/ }),
 
+/***/ "./node_modules/ieee754/index.js":
+/***/ (function(module, exports) {
+
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
+
+  i += d
+
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+  value = Math.abs(value)
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0
+    e = eMax
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2)
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--
+      c *= 2
+    }
+    if (e + eBias >= 1) {
+      value += rt / c
+    } else {
+      value += rt * Math.pow(2, 1 - eBias)
+    }
+    if (value * c >= 2) {
+      e++
+      c /= 2
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0
+      e = eMax
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen)
+      e = e + eBias
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/inherits/inherits_browser.js":
 /***/ (function(module, exports) {
 
@@ -6742,6 +10294,18 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./node_modules/isarray/index.js":
+/***/ (function(module, exports) {
+
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
 
 /***/ }),
 
@@ -13274,6 +16838,770 @@ function plural(ms, n, name) {
 
 /***/ }),
 
+/***/ "./node_modules/node-libs-browser/node_modules/url/url.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+var punycode = __webpack_require__("./node_modules/punycode/punycode.js");
+var util = __webpack_require__("./node_modules/node-libs-browser/node_modules/url/util.js");
+
+exports.parse = urlParse;
+exports.resolve = urlResolve;
+exports.resolveObject = urlResolveObject;
+exports.format = urlFormat;
+
+exports.Url = Url;
+
+function Url() {
+  this.protocol = null;
+  this.slashes = null;
+  this.auth = null;
+  this.host = null;
+  this.port = null;
+  this.hostname = null;
+  this.hash = null;
+  this.search = null;
+  this.query = null;
+  this.pathname = null;
+  this.path = null;
+  this.href = null;
+}
+
+// Reference: RFC 3986, RFC 1808, RFC 2396
+
+// define these here so at least they only have to be
+// compiled once on the first module load.
+var protocolPattern = /^([a-z0-9.+-]+:)/i,
+    portPattern = /:[0-9]*$/,
+
+    // Special case for a simple path URL
+    simplePathPattern = /^(\/\/?(?!\/)[^\?\s]*)(\?[^\s]*)?$/,
+
+    // RFC 2396: characters reserved for delimiting URLs.
+    // We actually just auto-escape these.
+    delims = ['<', '>', '"', '`', ' ', '\r', '\n', '\t'],
+
+    // RFC 2396: characters not allowed for various reasons.
+    unwise = ['{', '}', '|', '\\', '^', '`'].concat(delims),
+
+    // Allowed by RFCs, but cause of XSS attacks.  Always escape these.
+    autoEscape = ['\''].concat(unwise),
+    // Characters that are never ever allowed in a hostname.
+    // Note that any invalid chars are also handled, but these
+    // are the ones that are *expected* to be seen, so we fast-path
+    // them.
+    nonHostChars = ['%', '/', '?', ';', '#'].concat(autoEscape),
+    hostEndingChars = ['/', '?', '#'],
+    hostnameMaxLen = 255,
+    hostnamePartPattern = /^[+a-z0-9A-Z_-]{0,63}$/,
+    hostnamePartStart = /^([+a-z0-9A-Z_-]{0,63})(.*)$/,
+    // protocols that can allow "unsafe" and "unwise" chars.
+    unsafeProtocol = {
+      'javascript': true,
+      'javascript:': true
+    },
+    // protocols that never have a hostname.
+    hostlessProtocol = {
+      'javascript': true,
+      'javascript:': true
+    },
+    // protocols that always contain a // bit.
+    slashedProtocol = {
+      'http': true,
+      'https': true,
+      'ftp': true,
+      'gopher': true,
+      'file': true,
+      'http:': true,
+      'https:': true,
+      'ftp:': true,
+      'gopher:': true,
+      'file:': true
+    },
+    querystring = __webpack_require__("./node_modules/querystring-es3/index.js");
+
+function urlParse(url, parseQueryString, slashesDenoteHost) {
+  if (url && util.isObject(url) && url instanceof Url) return url;
+
+  var u = new Url;
+  u.parse(url, parseQueryString, slashesDenoteHost);
+  return u;
+}
+
+Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
+  if (!util.isString(url)) {
+    throw new TypeError("Parameter 'url' must be a string, not " + typeof url);
+  }
+
+  // Copy chrome, IE, opera backslash-handling behavior.
+  // Back slashes before the query string get converted to forward slashes
+  // See: https://code.google.com/p/chromium/issues/detail?id=25916
+  var queryIndex = url.indexOf('?'),
+      splitter =
+          (queryIndex !== -1 && queryIndex < url.indexOf('#')) ? '?' : '#',
+      uSplit = url.split(splitter),
+      slashRegex = /\\/g;
+  uSplit[0] = uSplit[0].replace(slashRegex, '/');
+  url = uSplit.join(splitter);
+
+  var rest = url;
+
+  // trim before proceeding.
+  // This is to support parse stuff like "  http://foo.com  \n"
+  rest = rest.trim();
+
+  if (!slashesDenoteHost && url.split('#').length === 1) {
+    // Try fast path regexp
+    var simplePath = simplePathPattern.exec(rest);
+    if (simplePath) {
+      this.path = rest;
+      this.href = rest;
+      this.pathname = simplePath[1];
+      if (simplePath[2]) {
+        this.search = simplePath[2];
+        if (parseQueryString) {
+          this.query = querystring.parse(this.search.substr(1));
+        } else {
+          this.query = this.search.substr(1);
+        }
+      } else if (parseQueryString) {
+        this.search = '';
+        this.query = {};
+      }
+      return this;
+    }
+  }
+
+  var proto = protocolPattern.exec(rest);
+  if (proto) {
+    proto = proto[0];
+    var lowerProto = proto.toLowerCase();
+    this.protocol = lowerProto;
+    rest = rest.substr(proto.length);
+  }
+
+  // figure out if it's got a host
+  // user@server is *always* interpreted as a hostname, and url
+  // resolution will treat //foo/bar as host=foo,path=bar because that's
+  // how the browser resolves relative URLs.
+  if (slashesDenoteHost || proto || rest.match(/^\/\/[^@\/]+@[^@\/]+/)) {
+    var slashes = rest.substr(0, 2) === '//';
+    if (slashes && !(proto && hostlessProtocol[proto])) {
+      rest = rest.substr(2);
+      this.slashes = true;
+    }
+  }
+
+  if (!hostlessProtocol[proto] &&
+      (slashes || (proto && !slashedProtocol[proto]))) {
+
+    // there's a hostname.
+    // the first instance of /, ?, ;, or # ends the host.
+    //
+    // If there is an @ in the hostname, then non-host chars *are* allowed
+    // to the left of the last @ sign, unless some host-ending character
+    // comes *before* the @-sign.
+    // URLs are obnoxious.
+    //
+    // ex:
+    // http://a@b@c/ => user:a@b host:c
+    // http://a@b?@c => user:a host:c path:/?@c
+
+    // v0.12 TODO(isaacs): This is not quite how Chrome does things.
+    // Review our test case against browsers more comprehensively.
+
+    // find the first instance of any hostEndingChars
+    var hostEnd = -1;
+    for (var i = 0; i < hostEndingChars.length; i++) {
+      var hec = rest.indexOf(hostEndingChars[i]);
+      if (hec !== -1 && (hostEnd === -1 || hec < hostEnd))
+        hostEnd = hec;
+    }
+
+    // at this point, either we have an explicit point where the
+    // auth portion cannot go past, or the last @ char is the decider.
+    var auth, atSign;
+    if (hostEnd === -1) {
+      // atSign can be anywhere.
+      atSign = rest.lastIndexOf('@');
+    } else {
+      // atSign must be in auth portion.
+      // http://a@b/c@d => host:b auth:a path:/c@d
+      atSign = rest.lastIndexOf('@', hostEnd);
+    }
+
+    // Now we have a portion which is definitely the auth.
+    // Pull that off.
+    if (atSign !== -1) {
+      auth = rest.slice(0, atSign);
+      rest = rest.slice(atSign + 1);
+      this.auth = decodeURIComponent(auth);
+    }
+
+    // the host is the remaining to the left of the first non-host char
+    hostEnd = -1;
+    for (var i = 0; i < nonHostChars.length; i++) {
+      var hec = rest.indexOf(nonHostChars[i]);
+      if (hec !== -1 && (hostEnd === -1 || hec < hostEnd))
+        hostEnd = hec;
+    }
+    // if we still have not hit it, then the entire thing is a host.
+    if (hostEnd === -1)
+      hostEnd = rest.length;
+
+    this.host = rest.slice(0, hostEnd);
+    rest = rest.slice(hostEnd);
+
+    // pull out port.
+    this.parseHost();
+
+    // we've indicated that there is a hostname,
+    // so even if it's empty, it has to be present.
+    this.hostname = this.hostname || '';
+
+    // if hostname begins with [ and ends with ]
+    // assume that it's an IPv6 address.
+    var ipv6Hostname = this.hostname[0] === '[' &&
+        this.hostname[this.hostname.length - 1] === ']';
+
+    // validate a little.
+    if (!ipv6Hostname) {
+      var hostparts = this.hostname.split(/\./);
+      for (var i = 0, l = hostparts.length; i < l; i++) {
+        var part = hostparts[i];
+        if (!part) continue;
+        if (!part.match(hostnamePartPattern)) {
+          var newpart = '';
+          for (var j = 0, k = part.length; j < k; j++) {
+            if (part.charCodeAt(j) > 127) {
+              // we replace non-ASCII char with a temporary placeholder
+              // we need this to make sure size of hostname is not
+              // broken by replacing non-ASCII by nothing
+              newpart += 'x';
+            } else {
+              newpart += part[j];
+            }
+          }
+          // we test again with ASCII char only
+          if (!newpart.match(hostnamePartPattern)) {
+            var validParts = hostparts.slice(0, i);
+            var notHost = hostparts.slice(i + 1);
+            var bit = part.match(hostnamePartStart);
+            if (bit) {
+              validParts.push(bit[1]);
+              notHost.unshift(bit[2]);
+            }
+            if (notHost.length) {
+              rest = '/' + notHost.join('.') + rest;
+            }
+            this.hostname = validParts.join('.');
+            break;
+          }
+        }
+      }
+    }
+
+    if (this.hostname.length > hostnameMaxLen) {
+      this.hostname = '';
+    } else {
+      // hostnames are always lower case.
+      this.hostname = this.hostname.toLowerCase();
+    }
+
+    if (!ipv6Hostname) {
+      // IDNA Support: Returns a punycoded representation of "domain".
+      // It only converts parts of the domain name that
+      // have non-ASCII characters, i.e. it doesn't matter if
+      // you call it with a domain that already is ASCII-only.
+      this.hostname = punycode.toASCII(this.hostname);
+    }
+
+    var p = this.port ? ':' + this.port : '';
+    var h = this.hostname || '';
+    this.host = h + p;
+    this.href += this.host;
+
+    // strip [ and ] from the hostname
+    // the host field still retains them, though
+    if (ipv6Hostname) {
+      this.hostname = this.hostname.substr(1, this.hostname.length - 2);
+      if (rest[0] !== '/') {
+        rest = '/' + rest;
+      }
+    }
+  }
+
+  // now rest is set to the post-host stuff.
+  // chop off any delim chars.
+  if (!unsafeProtocol[lowerProto]) {
+
+    // First, make 100% sure that any "autoEscape" chars get
+    // escaped, even if encodeURIComponent doesn't think they
+    // need to be.
+    for (var i = 0, l = autoEscape.length; i < l; i++) {
+      var ae = autoEscape[i];
+      if (rest.indexOf(ae) === -1)
+        continue;
+      var esc = encodeURIComponent(ae);
+      if (esc === ae) {
+        esc = escape(ae);
+      }
+      rest = rest.split(ae).join(esc);
+    }
+  }
+
+
+  // chop off from the tail first.
+  var hash = rest.indexOf('#');
+  if (hash !== -1) {
+    // got a fragment string.
+    this.hash = rest.substr(hash);
+    rest = rest.slice(0, hash);
+  }
+  var qm = rest.indexOf('?');
+  if (qm !== -1) {
+    this.search = rest.substr(qm);
+    this.query = rest.substr(qm + 1);
+    if (parseQueryString) {
+      this.query = querystring.parse(this.query);
+    }
+    rest = rest.slice(0, qm);
+  } else if (parseQueryString) {
+    // no query string, but parseQueryString still requested
+    this.search = '';
+    this.query = {};
+  }
+  if (rest) this.pathname = rest;
+  if (slashedProtocol[lowerProto] &&
+      this.hostname && !this.pathname) {
+    this.pathname = '/';
+  }
+
+  //to support http.request
+  if (this.pathname || this.search) {
+    var p = this.pathname || '';
+    var s = this.search || '';
+    this.path = p + s;
+  }
+
+  // finally, reconstruct the href based on what has been validated.
+  this.href = this.format();
+  return this;
+};
+
+// format a parsed object into a url string
+function urlFormat(obj) {
+  // ensure it's an object, and not a string url.
+  // If it's an obj, this is a no-op.
+  // this way, you can call url_format() on strings
+  // to clean up potentially wonky urls.
+  if (util.isString(obj)) obj = urlParse(obj);
+  if (!(obj instanceof Url)) return Url.prototype.format.call(obj);
+  return obj.format();
+}
+
+Url.prototype.format = function() {
+  var auth = this.auth || '';
+  if (auth) {
+    auth = encodeURIComponent(auth);
+    auth = auth.replace(/%3A/i, ':');
+    auth += '@';
+  }
+
+  var protocol = this.protocol || '',
+      pathname = this.pathname || '',
+      hash = this.hash || '',
+      host = false,
+      query = '';
+
+  if (this.host) {
+    host = auth + this.host;
+  } else if (this.hostname) {
+    host = auth + (this.hostname.indexOf(':') === -1 ?
+        this.hostname :
+        '[' + this.hostname + ']');
+    if (this.port) {
+      host += ':' + this.port;
+    }
+  }
+
+  if (this.query &&
+      util.isObject(this.query) &&
+      Object.keys(this.query).length) {
+    query = querystring.stringify(this.query);
+  }
+
+  var search = this.search || (query && ('?' + query)) || '';
+
+  if (protocol && protocol.substr(-1) !== ':') protocol += ':';
+
+  // only the slashedProtocols get the //.  Not mailto:, xmpp:, etc.
+  // unless they had them to begin with.
+  if (this.slashes ||
+      (!protocol || slashedProtocol[protocol]) && host !== false) {
+    host = '//' + (host || '');
+    if (pathname && pathname.charAt(0) !== '/') pathname = '/' + pathname;
+  } else if (!host) {
+    host = '';
+  }
+
+  if (hash && hash.charAt(0) !== '#') hash = '#' + hash;
+  if (search && search.charAt(0) !== '?') search = '?' + search;
+
+  pathname = pathname.replace(/[?#]/g, function(match) {
+    return encodeURIComponent(match);
+  });
+  search = search.replace('#', '%23');
+
+  return protocol + host + pathname + search + hash;
+};
+
+function urlResolve(source, relative) {
+  return urlParse(source, false, true).resolve(relative);
+}
+
+Url.prototype.resolve = function(relative) {
+  return this.resolveObject(urlParse(relative, false, true)).format();
+};
+
+function urlResolveObject(source, relative) {
+  if (!source) return relative;
+  return urlParse(source, false, true).resolveObject(relative);
+}
+
+Url.prototype.resolveObject = function(relative) {
+  if (util.isString(relative)) {
+    var rel = new Url();
+    rel.parse(relative, false, true);
+    relative = rel;
+  }
+
+  var result = new Url();
+  var tkeys = Object.keys(this);
+  for (var tk = 0; tk < tkeys.length; tk++) {
+    var tkey = tkeys[tk];
+    result[tkey] = this[tkey];
+  }
+
+  // hash is always overridden, no matter what.
+  // even href="" will remove it.
+  result.hash = relative.hash;
+
+  // if the relative url is empty, then there's nothing left to do here.
+  if (relative.href === '') {
+    result.href = result.format();
+    return result;
+  }
+
+  // hrefs like //foo/bar always cut to the protocol.
+  if (relative.slashes && !relative.protocol) {
+    // take everything except the protocol from relative
+    var rkeys = Object.keys(relative);
+    for (var rk = 0; rk < rkeys.length; rk++) {
+      var rkey = rkeys[rk];
+      if (rkey !== 'protocol')
+        result[rkey] = relative[rkey];
+    }
+
+    //urlParse appends trailing / to urls like http://www.example.com
+    if (slashedProtocol[result.protocol] &&
+        result.hostname && !result.pathname) {
+      result.path = result.pathname = '/';
+    }
+
+    result.href = result.format();
+    return result;
+  }
+
+  if (relative.protocol && relative.protocol !== result.protocol) {
+    // if it's a known url protocol, then changing
+    // the protocol does weird things
+    // first, if it's not file:, then we MUST have a host,
+    // and if there was a path
+    // to begin with, then we MUST have a path.
+    // if it is file:, then the host is dropped,
+    // because that's known to be hostless.
+    // anything else is assumed to be absolute.
+    if (!slashedProtocol[relative.protocol]) {
+      var keys = Object.keys(relative);
+      for (var v = 0; v < keys.length; v++) {
+        var k = keys[v];
+        result[k] = relative[k];
+      }
+      result.href = result.format();
+      return result;
+    }
+
+    result.protocol = relative.protocol;
+    if (!relative.host && !hostlessProtocol[relative.protocol]) {
+      var relPath = (relative.pathname || '').split('/');
+      while (relPath.length && !(relative.host = relPath.shift()));
+      if (!relative.host) relative.host = '';
+      if (!relative.hostname) relative.hostname = '';
+      if (relPath[0] !== '') relPath.unshift('');
+      if (relPath.length < 2) relPath.unshift('');
+      result.pathname = relPath.join('/');
+    } else {
+      result.pathname = relative.pathname;
+    }
+    result.search = relative.search;
+    result.query = relative.query;
+    result.host = relative.host || '';
+    result.auth = relative.auth;
+    result.hostname = relative.hostname || relative.host;
+    result.port = relative.port;
+    // to support http.request
+    if (result.pathname || result.search) {
+      var p = result.pathname || '';
+      var s = result.search || '';
+      result.path = p + s;
+    }
+    result.slashes = result.slashes || relative.slashes;
+    result.href = result.format();
+    return result;
+  }
+
+  var isSourceAbs = (result.pathname && result.pathname.charAt(0) === '/'),
+      isRelAbs = (
+          relative.host ||
+          relative.pathname && relative.pathname.charAt(0) === '/'
+      ),
+      mustEndAbs = (isRelAbs || isSourceAbs ||
+                    (result.host && relative.pathname)),
+      removeAllDots = mustEndAbs,
+      srcPath = result.pathname && result.pathname.split('/') || [],
+      relPath = relative.pathname && relative.pathname.split('/') || [],
+      psychotic = result.protocol && !slashedProtocol[result.protocol];
+
+  // if the url is a non-slashed url, then relative
+  // links like ../.. should be able
+  // to crawl up to the hostname, as well.  This is strange.
+  // result.protocol has already been set by now.
+  // Later on, put the first path part into the host field.
+  if (psychotic) {
+    result.hostname = '';
+    result.port = null;
+    if (result.host) {
+      if (srcPath[0] === '') srcPath[0] = result.host;
+      else srcPath.unshift(result.host);
+    }
+    result.host = '';
+    if (relative.protocol) {
+      relative.hostname = null;
+      relative.port = null;
+      if (relative.host) {
+        if (relPath[0] === '') relPath[0] = relative.host;
+        else relPath.unshift(relative.host);
+      }
+      relative.host = null;
+    }
+    mustEndAbs = mustEndAbs && (relPath[0] === '' || srcPath[0] === '');
+  }
+
+  if (isRelAbs) {
+    // it's absolute.
+    result.host = (relative.host || relative.host === '') ?
+                  relative.host : result.host;
+    result.hostname = (relative.hostname || relative.hostname === '') ?
+                      relative.hostname : result.hostname;
+    result.search = relative.search;
+    result.query = relative.query;
+    srcPath = relPath;
+    // fall through to the dot-handling below.
+  } else if (relPath.length) {
+    // it's relative
+    // throw away the existing file, and take the new path instead.
+    if (!srcPath) srcPath = [];
+    srcPath.pop();
+    srcPath = srcPath.concat(relPath);
+    result.search = relative.search;
+    result.query = relative.query;
+  } else if (!util.isNullOrUndefined(relative.search)) {
+    // just pull out the search.
+    // like href='?foo'.
+    // Put this after the other two cases because it simplifies the booleans
+    if (psychotic) {
+      result.hostname = result.host = srcPath.shift();
+      //occationaly the auth can get stuck only in host
+      //this especially happens in cases like
+      //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
+      var authInHost = result.host && result.host.indexOf('@') > 0 ?
+                       result.host.split('@') : false;
+      if (authInHost) {
+        result.auth = authInHost.shift();
+        result.host = result.hostname = authInHost.shift();
+      }
+    }
+    result.search = relative.search;
+    result.query = relative.query;
+    //to support http.request
+    if (!util.isNull(result.pathname) || !util.isNull(result.search)) {
+      result.path = (result.pathname ? result.pathname : '') +
+                    (result.search ? result.search : '');
+    }
+    result.href = result.format();
+    return result;
+  }
+
+  if (!srcPath.length) {
+    // no path at all.  easy.
+    // we've already handled the other stuff above.
+    result.pathname = null;
+    //to support http.request
+    if (result.search) {
+      result.path = '/' + result.search;
+    } else {
+      result.path = null;
+    }
+    result.href = result.format();
+    return result;
+  }
+
+  // if a url ENDs in . or .., then it must get a trailing slash.
+  // however, if it ends in anything else non-slashy,
+  // then it must NOT get a trailing slash.
+  var last = srcPath.slice(-1)[0];
+  var hasTrailingSlash = (
+      (result.host || relative.host || srcPath.length > 1) &&
+      (last === '.' || last === '..') || last === '');
+
+  // strip single dots, resolve double dots to parent dir
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = srcPath.length; i >= 0; i--) {
+    last = srcPath[i];
+    if (last === '.') {
+      srcPath.splice(i, 1);
+    } else if (last === '..') {
+      srcPath.splice(i, 1);
+      up++;
+    } else if (up) {
+      srcPath.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (!mustEndAbs && !removeAllDots) {
+    for (; up--; up) {
+      srcPath.unshift('..');
+    }
+  }
+
+  if (mustEndAbs && srcPath[0] !== '' &&
+      (!srcPath[0] || srcPath[0].charAt(0) !== '/')) {
+    srcPath.unshift('');
+  }
+
+  if (hasTrailingSlash && (srcPath.join('/').substr(-1) !== '/')) {
+    srcPath.push('');
+  }
+
+  var isAbsolute = srcPath[0] === '' ||
+      (srcPath[0] && srcPath[0].charAt(0) === '/');
+
+  // put the host back
+  if (psychotic) {
+    result.hostname = result.host = isAbsolute ? '' :
+                                    srcPath.length ? srcPath.shift() : '';
+    //occationaly the auth can get stuck only in host
+    //this especially happens in cases like
+    //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
+    var authInHost = result.host && result.host.indexOf('@') > 0 ?
+                     result.host.split('@') : false;
+    if (authInHost) {
+      result.auth = authInHost.shift();
+      result.host = result.hostname = authInHost.shift();
+    }
+  }
+
+  mustEndAbs = mustEndAbs || (result.host && srcPath.length);
+
+  if (mustEndAbs && !isAbsolute) {
+    srcPath.unshift('');
+  }
+
+  if (!srcPath.length) {
+    result.pathname = null;
+    result.path = null;
+  } else {
+    result.pathname = srcPath.join('/');
+  }
+
+  //to support request.http
+  if (!util.isNull(result.pathname) || !util.isNull(result.search)) {
+    result.path = (result.pathname ? result.pathname : '') +
+                  (result.search ? result.search : '');
+  }
+  result.auth = relative.auth || result.auth;
+  result.slashes = result.slashes || relative.slashes;
+  result.href = result.format();
+  return result;
+};
+
+Url.prototype.parseHost = function() {
+  var host = this.host;
+  var port = portPattern.exec(host);
+  if (port) {
+    port = port[0];
+    if (port !== ':') {
+      this.port = port.substr(1);
+    }
+    host = host.substr(0, host.length - port.length);
+  }
+  if (host) this.hostname = host;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/node-libs-browser/node_modules/url/util.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = {
+  isString: function(arg) {
+    return typeof(arg) === 'string';
+  },
+  isObject: function(arg) {
+    return typeof(arg) === 'object' && arg !== null;
+  },
+  isNull: function(arg) {
+    return arg === null;
+  },
+  isNullOrUndefined: function(arg) {
+    return arg == null;
+  }
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/object-assign/index.js":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -13562,7 +17890,7 @@ process.umask = function() { return 0; };
 /***/ "./node_modules/punycode/punycode.js":
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/punycode v1.4.1 by @mathias */
+/* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
 
 	/** Detect free variables */
@@ -13628,7 +17956,7 @@ process.umask = function() { return 0; };
 	 * @returns {Error} Throws a `RangeError` with the applicable error message.
 	 */
 	function error(type) {
-		throw new RangeError(errors[type]);
+		throw RangeError(errors[type]);
 	}
 
 	/**
@@ -13775,7 +18103,7 @@ process.umask = function() { return 0; };
 
 	/**
 	 * Bias adaptation function as per section 3.4 of RFC 3492.
-	 * https://tools.ietf.org/html/rfc3492#section-3.4
+	 * http://tools.ietf.org/html/rfc3492#section-3.4
 	 * @private
 	 */
 	function adapt(delta, numPoints, firstTime) {
@@ -14050,7 +18378,7 @@ process.umask = function() { return 0; };
 		 * @memberOf punycode
 		 * @type String
 		 */
-		'version': '1.4.1',
+		'version': '1.3.2',
 		/**
 		 * An object of methods to convert from JavaScript's internal character
 		 * representation (UCS-2) to Unicode code points, and back.
@@ -14079,17 +18407,14 @@ process.umask = function() { return 0; };
 		}.call(exports, __webpack_require__, exports, module),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	} else if (freeExports && freeModule) {
-		if (module.exports == freeExports) {
-			// in Node.js, io.js, or RingoJS v0.8.0+
+		if (module.exports == freeExports) { // in Node.js or RingoJS v0.8.0+
 			freeModule.exports = punycode;
-		} else {
-			// in Narwhal or RingoJS v0.7.0-
+		} else { // in Narwhal or RingoJS v0.7.0-
 			for (key in punycode) {
 				punycode.hasOwnProperty(key) && (freeExports[key] = punycode[key]);
 			}
 		}
-	} else {
-		// in Rhino or a web browser
+	} else { // in Rhino or a web browser
 		root.punycode = punycode;
 	}
 
@@ -16466,7 +20791,7 @@ var Col = function (_React$Component) {
 Col.propTypes = propTypes;
 Col.defaultProps = defaultProps;
 
-/* unused harmony default export */ var _unused_webpack_default_export = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_8__utils_bootstrapUtils__["c" /* bsClass */])('col', Col);
+/* harmony default export */ __webpack_exports__["a"] = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_8__utils_bootstrapUtils__["c" /* bsClass */])('col', Col);
 
 /***/ }),
 
@@ -19833,7 +24158,7 @@ var MenuItem = function (_React$Component) {
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
 
-/* unused harmony default export */ var _unused_webpack_default_export = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_9__utils_bootstrapUtils__["c" /* bsClass */])('dropdown', MenuItem);
+/* harmony default export */ __webpack_exports__["a"] = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_9__utils_bootstrapUtils__["c" /* bsClass */])('dropdown', MenuItem);
 
 /***/ }),
 
@@ -21112,7 +25437,7 @@ var NavDropdown = function (_React$Component) {
 
 NavDropdown.propTypes = propTypes;
 
-/* unused harmony default export */ var _unused_webpack_default_export = NavDropdown;
+/* harmony default export */ __webpack_exports__["a"] = NavDropdown;
 
 /***/ }),
 
@@ -24065,7 +28390,7 @@ var Row = function (_React$Component) {
 Row.propTypes = propTypes;
 Row.defaultProps = defaultProps;
 
-/* unused harmony default export */ var _unused_webpack_default_export = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_8__utils_bootstrapUtils__["c" /* bsClass */])('row', Row);
+/* harmony default export */ __webpack_exports__["a"] = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_8__utils_bootstrapUtils__["c" /* bsClass */])('row', Row);
 
 /***/ }),
 
@@ -25648,7 +29973,7 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__BreadcrumbItem__ = __webpack_require__("./node_modules/react-bootstrap/es/BreadcrumbItem.js");
 /* unused harmony reexport BreadcrumbItem */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__Button__ = __webpack_require__("./node_modules/react-bootstrap/es/Button.js");
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_5__Button__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "i", function() { return __WEBPACK_IMPORTED_MODULE_5__Button__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ButtonGroup__ = __webpack_require__("./node_modules/react-bootstrap/es/ButtonGroup.js");
 /* unused harmony reexport ButtonGroup */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__ButtonToolbar__ = __webpack_require__("./node_modules/react-bootstrap/es/ButtonToolbar.js");
@@ -25664,7 +29989,7 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__ControlLabel__ = __webpack_require__("./node_modules/react-bootstrap/es/ControlLabel.js");
 /* unused harmony reexport ControlLabel */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__Col__ = __webpack_require__("./node_modules/react-bootstrap/es/Col.js");
-/* unused harmony reexport Col */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return __WEBPACK_IMPORTED_MODULE_13__Col__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__Collapse__ = __webpack_require__("./node_modules/react-bootstrap/es/Collapse.js");
 /* unused harmony reexport Collapse */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__Dropdown__ = __webpack_require__("./node_modules/react-bootstrap/es/Dropdown.js");
@@ -25680,7 +30005,7 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__FormGroup__ = __webpack_require__("./node_modules/react-bootstrap/es/FormGroup.js");
 /* unused harmony reexport FormGroup */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__Glyphicon__ = __webpack_require__("./node_modules/react-bootstrap/es/Glyphicon.js");
-/* unused harmony reexport Glyphicon */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return __WEBPACK_IMPORTED_MODULE_21__Glyphicon__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__Grid__ = __webpack_require__("./node_modules/react-bootstrap/es/Grid.js");
 /* unused harmony reexport Grid */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__HelpBlock__ = __webpack_require__("./node_modules/react-bootstrap/es/HelpBlock.js");
@@ -25700,7 +30025,7 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_30__Media__ = __webpack_require__("./node_modules/react-bootstrap/es/Media.js");
 /* unused harmony reexport Media */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_31__MenuItem__ = __webpack_require__("./node_modules/react-bootstrap/es/MenuItem.js");
-/* unused harmony reexport MenuItem */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return __WEBPACK_IMPORTED_MODULE_31__MenuItem__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_32__Modal__ = __webpack_require__("./node_modules/react-bootstrap/es/Modal.js");
 /* unused harmony reexport Modal */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_33__ModalBody__ = __webpack_require__("./node_modules/react-bootstrap/es/ModalBody.js");
@@ -25712,15 +30037,15 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_36__ModalTitle__ = __webpack_require__("./node_modules/react-bootstrap/es/ModalTitle.js");
 /* unused harmony reexport ModalTitle */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_37__Nav__ = __webpack_require__("./node_modules/react-bootstrap/es/Nav.js");
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_37__Nav__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_37__Nav__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_38__Navbar__ = __webpack_require__("./node_modules/react-bootstrap/es/Navbar.js");
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_38__Navbar__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_38__Navbar__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_39__NavbarBrand__ = __webpack_require__("./node_modules/react-bootstrap/es/NavbarBrand.js");
 /* unused harmony reexport NavbarBrand */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_40__NavDropdown__ = __webpack_require__("./node_modules/react-bootstrap/es/NavDropdown.js");
-/* unused harmony reexport NavDropdown */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_40__NavDropdown__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_41__NavItem__ = __webpack_require__("./node_modules/react-bootstrap/es/NavItem.js");
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_41__NavItem__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_41__NavItem__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_42__Overlay__ = __webpack_require__("./node_modules/react-bootstrap/es/Overlay.js");
 /* unused harmony reexport Overlay */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_43__OverlayTrigger__ = __webpack_require__("./node_modules/react-bootstrap/es/OverlayTrigger.js");
@@ -25746,7 +30071,7 @@ var Well = function (_React$Component) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_53__ResponsiveEmbed__ = __webpack_require__("./node_modules/react-bootstrap/es/ResponsiveEmbed.js");
 /* unused harmony reexport ResponsiveEmbed */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_54__Row__ = __webpack_require__("./node_modules/react-bootstrap/es/Row.js");
-/* unused harmony reexport Row */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return __WEBPACK_IMPORTED_MODULE_54__Row__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_55__SafeAnchor__ = __webpack_require__("./node_modules/react-bootstrap/es/SafeAnchor.js");
 /* unused harmony reexport SafeAnchor */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_56__SplitButton__ = __webpack_require__("./node_modules/react-bootstrap/es/SplitButton.js");
@@ -48425,7 +52750,7 @@ function createConnect() {
   };
 }
 
-/* unused harmony default export */ var _unused_webpack_default_export = createConnect();
+/* harmony default export */ __webpack_exports__["a"] = createConnect();
 
 /***/ }),
 
@@ -48453,7 +52778,7 @@ function whenMapDispatchToPropsIsMissing(mapDispatchToProps) {
 
 function whenMapDispatchToPropsIsObject(mapDispatchToProps) {
   return mapDispatchToProps && typeof mapDispatchToProps === 'object' ? __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1__wrapMapToProps__["b" /* wrapMapToPropsConstant */])(function (dispatch) {
-    return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux__["c" /* bindActionCreators */])(mapDispatchToProps, dispatch);
+    return __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux__["a" /* bindActionCreators */])(mapDispatchToProps, dispatch);
   }) : undefined;
 }
 
@@ -48770,7 +53095,7 @@ function wrapMapToPropsFunc(mapToProps, methodName) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__connect_connect__ = __webpack_require__("./node_modules/react-redux/es/connect/connect.js");
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_0__components_Provider__["a"]; });
 /* unused harmony reexport connectAdvanced */
-/* unused harmony reexport connect */
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_2__connect_connect__["a"]; });
 
 
 
@@ -58560,7 +62885,7 @@ function bindActionCreators(actionCreators, dispatch) {
 /* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__("./node_modules/redux/es/createStore.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_es_isPlainObject__ = __webpack_require__("./node_modules/lodash-es/isPlainObject.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_warning__ = __webpack_require__("./node_modules/redux/es/utils/warning.js");
-/* unused harmony export default */
+/* harmony export (immutable) */ __webpack_exports__["a"] = combineReducers;
 
 
 
@@ -58574,7 +62899,7 @@ function getUndefinedStateErrorMessage(key, action) {
 
 function getUnexpectedStateShapeWarningMessage(inputState, reducers, action, unexpectedKeyCache) {
   var reducerKeys = Object.keys(reducers);
-  var argumentName = action && action.type === __WEBPACK_IMPORTED_MODULE_0__createStore__["b" /* ActionTypes */].INIT ? 'preloadedState argument passed to createStore' : 'previous state received by the reducer';
+  var argumentName = action && action.type === __WEBPACK_IMPORTED_MODULE_0__createStore__["a" /* ActionTypes */].INIT ? 'preloadedState argument passed to createStore' : 'previous state received by the reducer';
 
   if (reducerKeys.length === 0) {
     return 'Store does not have a valid reducer. Make sure the argument passed ' + 'to combineReducers is an object whose values are reducers.';
@@ -58600,7 +62925,7 @@ function getUnexpectedStateShapeWarningMessage(inputState, reducers, action, une
 function assertReducerSanity(reducers) {
   Object.keys(reducers).forEach(function (key) {
     var reducer = reducers[key];
-    var initialState = reducer(undefined, { type: __WEBPACK_IMPORTED_MODULE_0__createStore__["b" /* ActionTypes */].INIT });
+    var initialState = reducer(undefined, { type: __WEBPACK_IMPORTED_MODULE_0__createStore__["a" /* ActionTypes */].INIT });
 
     if (typeof initialState === 'undefined') {
       throw new Error('Reducer "' + key + '" returned undefined during initialization. ' + 'If the state passed to the reducer is undefined, you must ' + 'explicitly return the initial state. The initial state may ' + 'not be undefined.');
@@ -58608,7 +62933,7 @@ function assertReducerSanity(reducers) {
 
     var type = '@@redux/PROBE_UNKNOWN_ACTION_' + Math.random().toString(36).substring(7).split('').join('.');
     if (typeof reducer(undefined, { type: type }) === 'undefined') {
-      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + __WEBPACK_IMPORTED_MODULE_0__createStore__["b" /* ActionTypes */].INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined.');
+      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + __WEBPACK_IMPORTED_MODULE_0__createStore__["a" /* ActionTypes */].INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined.');
     }
   });
 }
@@ -58743,8 +63068,8 @@ function compose() {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__("./node_modules/lodash-es/isPlainObject.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable__ = __webpack_require__("./node_modules/symbol-observable/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_symbol_observable__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return ActionTypes; });
-/* harmony export (immutable) */ __webpack_exports__["a"] = createStore;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ActionTypes; });
+/* harmony export (immutable) */ __webpack_exports__["b"] = createStore;
 
 
 
@@ -59006,10 +63331,10 @@ function createStore(reducer, preloadedState, enhancer) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__ = __webpack_require__("./node_modules/redux/es/applyMiddleware.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__compose__ = __webpack_require__("./node_modules/redux/es/compose.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__utils_warning__ = __webpack_require__("./node_modules/redux/es/utils/warning.js");
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_0__createStore__["a"]; });
-/* unused harmony reexport combineReducers */
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__["a"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_0__createStore__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_1__combineReducers__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_2__bindActionCreators__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_3__applyMiddleware__["a"]; });
 /* unused harmony reexport compose */
 
 
@@ -64323,770 +68648,6 @@ module.exports = function lolcation(loc) {
 
 /***/ }),
 
-/***/ "./node_modules/url/url.js":
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-var punycode = __webpack_require__("./node_modules/punycode/punycode.js");
-var util = __webpack_require__("./node_modules/url/util.js");
-
-exports.parse = urlParse;
-exports.resolve = urlResolve;
-exports.resolveObject = urlResolveObject;
-exports.format = urlFormat;
-
-exports.Url = Url;
-
-function Url() {
-  this.protocol = null;
-  this.slashes = null;
-  this.auth = null;
-  this.host = null;
-  this.port = null;
-  this.hostname = null;
-  this.hash = null;
-  this.search = null;
-  this.query = null;
-  this.pathname = null;
-  this.path = null;
-  this.href = null;
-}
-
-// Reference: RFC 3986, RFC 1808, RFC 2396
-
-// define these here so at least they only have to be
-// compiled once on the first module load.
-var protocolPattern = /^([a-z0-9.+-]+:)/i,
-    portPattern = /:[0-9]*$/,
-
-    // Special case for a simple path URL
-    simplePathPattern = /^(\/\/?(?!\/)[^\?\s]*)(\?[^\s]*)?$/,
-
-    // RFC 2396: characters reserved for delimiting URLs.
-    // We actually just auto-escape these.
-    delims = ['<', '>', '"', '`', ' ', '\r', '\n', '\t'],
-
-    // RFC 2396: characters not allowed for various reasons.
-    unwise = ['{', '}', '|', '\\', '^', '`'].concat(delims),
-
-    // Allowed by RFCs, but cause of XSS attacks.  Always escape these.
-    autoEscape = ['\''].concat(unwise),
-    // Characters that are never ever allowed in a hostname.
-    // Note that any invalid chars are also handled, but these
-    // are the ones that are *expected* to be seen, so we fast-path
-    // them.
-    nonHostChars = ['%', '/', '?', ';', '#'].concat(autoEscape),
-    hostEndingChars = ['/', '?', '#'],
-    hostnameMaxLen = 255,
-    hostnamePartPattern = /^[+a-z0-9A-Z_-]{0,63}$/,
-    hostnamePartStart = /^([+a-z0-9A-Z_-]{0,63})(.*)$/,
-    // protocols that can allow "unsafe" and "unwise" chars.
-    unsafeProtocol = {
-      'javascript': true,
-      'javascript:': true
-    },
-    // protocols that never have a hostname.
-    hostlessProtocol = {
-      'javascript': true,
-      'javascript:': true
-    },
-    // protocols that always contain a // bit.
-    slashedProtocol = {
-      'http': true,
-      'https': true,
-      'ftp': true,
-      'gopher': true,
-      'file': true,
-      'http:': true,
-      'https:': true,
-      'ftp:': true,
-      'gopher:': true,
-      'file:': true
-    },
-    querystring = __webpack_require__("./node_modules/querystring-es3/index.js");
-
-function urlParse(url, parseQueryString, slashesDenoteHost) {
-  if (url && util.isObject(url) && url instanceof Url) return url;
-
-  var u = new Url;
-  u.parse(url, parseQueryString, slashesDenoteHost);
-  return u;
-}
-
-Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
-  if (!util.isString(url)) {
-    throw new TypeError("Parameter 'url' must be a string, not " + typeof url);
-  }
-
-  // Copy chrome, IE, opera backslash-handling behavior.
-  // Back slashes before the query string get converted to forward slashes
-  // See: https://code.google.com/p/chromium/issues/detail?id=25916
-  var queryIndex = url.indexOf('?'),
-      splitter =
-          (queryIndex !== -1 && queryIndex < url.indexOf('#')) ? '?' : '#',
-      uSplit = url.split(splitter),
-      slashRegex = /\\/g;
-  uSplit[0] = uSplit[0].replace(slashRegex, '/');
-  url = uSplit.join(splitter);
-
-  var rest = url;
-
-  // trim before proceeding.
-  // This is to support parse stuff like "  http://foo.com  \n"
-  rest = rest.trim();
-
-  if (!slashesDenoteHost && url.split('#').length === 1) {
-    // Try fast path regexp
-    var simplePath = simplePathPattern.exec(rest);
-    if (simplePath) {
-      this.path = rest;
-      this.href = rest;
-      this.pathname = simplePath[1];
-      if (simplePath[2]) {
-        this.search = simplePath[2];
-        if (parseQueryString) {
-          this.query = querystring.parse(this.search.substr(1));
-        } else {
-          this.query = this.search.substr(1);
-        }
-      } else if (parseQueryString) {
-        this.search = '';
-        this.query = {};
-      }
-      return this;
-    }
-  }
-
-  var proto = protocolPattern.exec(rest);
-  if (proto) {
-    proto = proto[0];
-    var lowerProto = proto.toLowerCase();
-    this.protocol = lowerProto;
-    rest = rest.substr(proto.length);
-  }
-
-  // figure out if it's got a host
-  // user@server is *always* interpreted as a hostname, and url
-  // resolution will treat //foo/bar as host=foo,path=bar because that's
-  // how the browser resolves relative URLs.
-  if (slashesDenoteHost || proto || rest.match(/^\/\/[^@\/]+@[^@\/]+/)) {
-    var slashes = rest.substr(0, 2) === '//';
-    if (slashes && !(proto && hostlessProtocol[proto])) {
-      rest = rest.substr(2);
-      this.slashes = true;
-    }
-  }
-
-  if (!hostlessProtocol[proto] &&
-      (slashes || (proto && !slashedProtocol[proto]))) {
-
-    // there's a hostname.
-    // the first instance of /, ?, ;, or # ends the host.
-    //
-    // If there is an @ in the hostname, then non-host chars *are* allowed
-    // to the left of the last @ sign, unless some host-ending character
-    // comes *before* the @-sign.
-    // URLs are obnoxious.
-    //
-    // ex:
-    // http://a@b@c/ => user:a@b host:c
-    // http://a@b?@c => user:a host:c path:/?@c
-
-    // v0.12 TODO(isaacs): This is not quite how Chrome does things.
-    // Review our test case against browsers more comprehensively.
-
-    // find the first instance of any hostEndingChars
-    var hostEnd = -1;
-    for (var i = 0; i < hostEndingChars.length; i++) {
-      var hec = rest.indexOf(hostEndingChars[i]);
-      if (hec !== -1 && (hostEnd === -1 || hec < hostEnd))
-        hostEnd = hec;
-    }
-
-    // at this point, either we have an explicit point where the
-    // auth portion cannot go past, or the last @ char is the decider.
-    var auth, atSign;
-    if (hostEnd === -1) {
-      // atSign can be anywhere.
-      atSign = rest.lastIndexOf('@');
-    } else {
-      // atSign must be in auth portion.
-      // http://a@b/c@d => host:b auth:a path:/c@d
-      atSign = rest.lastIndexOf('@', hostEnd);
-    }
-
-    // Now we have a portion which is definitely the auth.
-    // Pull that off.
-    if (atSign !== -1) {
-      auth = rest.slice(0, atSign);
-      rest = rest.slice(atSign + 1);
-      this.auth = decodeURIComponent(auth);
-    }
-
-    // the host is the remaining to the left of the first non-host char
-    hostEnd = -1;
-    for (var i = 0; i < nonHostChars.length; i++) {
-      var hec = rest.indexOf(nonHostChars[i]);
-      if (hec !== -1 && (hostEnd === -1 || hec < hostEnd))
-        hostEnd = hec;
-    }
-    // if we still have not hit it, then the entire thing is a host.
-    if (hostEnd === -1)
-      hostEnd = rest.length;
-
-    this.host = rest.slice(0, hostEnd);
-    rest = rest.slice(hostEnd);
-
-    // pull out port.
-    this.parseHost();
-
-    // we've indicated that there is a hostname,
-    // so even if it's empty, it has to be present.
-    this.hostname = this.hostname || '';
-
-    // if hostname begins with [ and ends with ]
-    // assume that it's an IPv6 address.
-    var ipv6Hostname = this.hostname[0] === '[' &&
-        this.hostname[this.hostname.length - 1] === ']';
-
-    // validate a little.
-    if (!ipv6Hostname) {
-      var hostparts = this.hostname.split(/\./);
-      for (var i = 0, l = hostparts.length; i < l; i++) {
-        var part = hostparts[i];
-        if (!part) continue;
-        if (!part.match(hostnamePartPattern)) {
-          var newpart = '';
-          for (var j = 0, k = part.length; j < k; j++) {
-            if (part.charCodeAt(j) > 127) {
-              // we replace non-ASCII char with a temporary placeholder
-              // we need this to make sure size of hostname is not
-              // broken by replacing non-ASCII by nothing
-              newpart += 'x';
-            } else {
-              newpart += part[j];
-            }
-          }
-          // we test again with ASCII char only
-          if (!newpart.match(hostnamePartPattern)) {
-            var validParts = hostparts.slice(0, i);
-            var notHost = hostparts.slice(i + 1);
-            var bit = part.match(hostnamePartStart);
-            if (bit) {
-              validParts.push(bit[1]);
-              notHost.unshift(bit[2]);
-            }
-            if (notHost.length) {
-              rest = '/' + notHost.join('.') + rest;
-            }
-            this.hostname = validParts.join('.');
-            break;
-          }
-        }
-      }
-    }
-
-    if (this.hostname.length > hostnameMaxLen) {
-      this.hostname = '';
-    } else {
-      // hostnames are always lower case.
-      this.hostname = this.hostname.toLowerCase();
-    }
-
-    if (!ipv6Hostname) {
-      // IDNA Support: Returns a punycoded representation of "domain".
-      // It only converts parts of the domain name that
-      // have non-ASCII characters, i.e. it doesn't matter if
-      // you call it with a domain that already is ASCII-only.
-      this.hostname = punycode.toASCII(this.hostname);
-    }
-
-    var p = this.port ? ':' + this.port : '';
-    var h = this.hostname || '';
-    this.host = h + p;
-    this.href += this.host;
-
-    // strip [ and ] from the hostname
-    // the host field still retains them, though
-    if (ipv6Hostname) {
-      this.hostname = this.hostname.substr(1, this.hostname.length - 2);
-      if (rest[0] !== '/') {
-        rest = '/' + rest;
-      }
-    }
-  }
-
-  // now rest is set to the post-host stuff.
-  // chop off any delim chars.
-  if (!unsafeProtocol[lowerProto]) {
-
-    // First, make 100% sure that any "autoEscape" chars get
-    // escaped, even if encodeURIComponent doesn't think they
-    // need to be.
-    for (var i = 0, l = autoEscape.length; i < l; i++) {
-      var ae = autoEscape[i];
-      if (rest.indexOf(ae) === -1)
-        continue;
-      var esc = encodeURIComponent(ae);
-      if (esc === ae) {
-        esc = escape(ae);
-      }
-      rest = rest.split(ae).join(esc);
-    }
-  }
-
-
-  // chop off from the tail first.
-  var hash = rest.indexOf('#');
-  if (hash !== -1) {
-    // got a fragment string.
-    this.hash = rest.substr(hash);
-    rest = rest.slice(0, hash);
-  }
-  var qm = rest.indexOf('?');
-  if (qm !== -1) {
-    this.search = rest.substr(qm);
-    this.query = rest.substr(qm + 1);
-    if (parseQueryString) {
-      this.query = querystring.parse(this.query);
-    }
-    rest = rest.slice(0, qm);
-  } else if (parseQueryString) {
-    // no query string, but parseQueryString still requested
-    this.search = '';
-    this.query = {};
-  }
-  if (rest) this.pathname = rest;
-  if (slashedProtocol[lowerProto] &&
-      this.hostname && !this.pathname) {
-    this.pathname = '/';
-  }
-
-  //to support http.request
-  if (this.pathname || this.search) {
-    var p = this.pathname || '';
-    var s = this.search || '';
-    this.path = p + s;
-  }
-
-  // finally, reconstruct the href based on what has been validated.
-  this.href = this.format();
-  return this;
-};
-
-// format a parsed object into a url string
-function urlFormat(obj) {
-  // ensure it's an object, and not a string url.
-  // If it's an obj, this is a no-op.
-  // this way, you can call url_format() on strings
-  // to clean up potentially wonky urls.
-  if (util.isString(obj)) obj = urlParse(obj);
-  if (!(obj instanceof Url)) return Url.prototype.format.call(obj);
-  return obj.format();
-}
-
-Url.prototype.format = function() {
-  var auth = this.auth || '';
-  if (auth) {
-    auth = encodeURIComponent(auth);
-    auth = auth.replace(/%3A/i, ':');
-    auth += '@';
-  }
-
-  var protocol = this.protocol || '',
-      pathname = this.pathname || '',
-      hash = this.hash || '',
-      host = false,
-      query = '';
-
-  if (this.host) {
-    host = auth + this.host;
-  } else if (this.hostname) {
-    host = auth + (this.hostname.indexOf(':') === -1 ?
-        this.hostname :
-        '[' + this.hostname + ']');
-    if (this.port) {
-      host += ':' + this.port;
-    }
-  }
-
-  if (this.query &&
-      util.isObject(this.query) &&
-      Object.keys(this.query).length) {
-    query = querystring.stringify(this.query);
-  }
-
-  var search = this.search || (query && ('?' + query)) || '';
-
-  if (protocol && protocol.substr(-1) !== ':') protocol += ':';
-
-  // only the slashedProtocols get the //.  Not mailto:, xmpp:, etc.
-  // unless they had them to begin with.
-  if (this.slashes ||
-      (!protocol || slashedProtocol[protocol]) && host !== false) {
-    host = '//' + (host || '');
-    if (pathname && pathname.charAt(0) !== '/') pathname = '/' + pathname;
-  } else if (!host) {
-    host = '';
-  }
-
-  if (hash && hash.charAt(0) !== '#') hash = '#' + hash;
-  if (search && search.charAt(0) !== '?') search = '?' + search;
-
-  pathname = pathname.replace(/[?#]/g, function(match) {
-    return encodeURIComponent(match);
-  });
-  search = search.replace('#', '%23');
-
-  return protocol + host + pathname + search + hash;
-};
-
-function urlResolve(source, relative) {
-  return urlParse(source, false, true).resolve(relative);
-}
-
-Url.prototype.resolve = function(relative) {
-  return this.resolveObject(urlParse(relative, false, true)).format();
-};
-
-function urlResolveObject(source, relative) {
-  if (!source) return relative;
-  return urlParse(source, false, true).resolveObject(relative);
-}
-
-Url.prototype.resolveObject = function(relative) {
-  if (util.isString(relative)) {
-    var rel = new Url();
-    rel.parse(relative, false, true);
-    relative = rel;
-  }
-
-  var result = new Url();
-  var tkeys = Object.keys(this);
-  for (var tk = 0; tk < tkeys.length; tk++) {
-    var tkey = tkeys[tk];
-    result[tkey] = this[tkey];
-  }
-
-  // hash is always overridden, no matter what.
-  // even href="" will remove it.
-  result.hash = relative.hash;
-
-  // if the relative url is empty, then there's nothing left to do here.
-  if (relative.href === '') {
-    result.href = result.format();
-    return result;
-  }
-
-  // hrefs like //foo/bar always cut to the protocol.
-  if (relative.slashes && !relative.protocol) {
-    // take everything except the protocol from relative
-    var rkeys = Object.keys(relative);
-    for (var rk = 0; rk < rkeys.length; rk++) {
-      var rkey = rkeys[rk];
-      if (rkey !== 'protocol')
-        result[rkey] = relative[rkey];
-    }
-
-    //urlParse appends trailing / to urls like http://www.example.com
-    if (slashedProtocol[result.protocol] &&
-        result.hostname && !result.pathname) {
-      result.path = result.pathname = '/';
-    }
-
-    result.href = result.format();
-    return result;
-  }
-
-  if (relative.protocol && relative.protocol !== result.protocol) {
-    // if it's a known url protocol, then changing
-    // the protocol does weird things
-    // first, if it's not file:, then we MUST have a host,
-    // and if there was a path
-    // to begin with, then we MUST have a path.
-    // if it is file:, then the host is dropped,
-    // because that's known to be hostless.
-    // anything else is assumed to be absolute.
-    if (!slashedProtocol[relative.protocol]) {
-      var keys = Object.keys(relative);
-      for (var v = 0; v < keys.length; v++) {
-        var k = keys[v];
-        result[k] = relative[k];
-      }
-      result.href = result.format();
-      return result;
-    }
-
-    result.protocol = relative.protocol;
-    if (!relative.host && !hostlessProtocol[relative.protocol]) {
-      var relPath = (relative.pathname || '').split('/');
-      while (relPath.length && !(relative.host = relPath.shift()));
-      if (!relative.host) relative.host = '';
-      if (!relative.hostname) relative.hostname = '';
-      if (relPath[0] !== '') relPath.unshift('');
-      if (relPath.length < 2) relPath.unshift('');
-      result.pathname = relPath.join('/');
-    } else {
-      result.pathname = relative.pathname;
-    }
-    result.search = relative.search;
-    result.query = relative.query;
-    result.host = relative.host || '';
-    result.auth = relative.auth;
-    result.hostname = relative.hostname || relative.host;
-    result.port = relative.port;
-    // to support http.request
-    if (result.pathname || result.search) {
-      var p = result.pathname || '';
-      var s = result.search || '';
-      result.path = p + s;
-    }
-    result.slashes = result.slashes || relative.slashes;
-    result.href = result.format();
-    return result;
-  }
-
-  var isSourceAbs = (result.pathname && result.pathname.charAt(0) === '/'),
-      isRelAbs = (
-          relative.host ||
-          relative.pathname && relative.pathname.charAt(0) === '/'
-      ),
-      mustEndAbs = (isRelAbs || isSourceAbs ||
-                    (result.host && relative.pathname)),
-      removeAllDots = mustEndAbs,
-      srcPath = result.pathname && result.pathname.split('/') || [],
-      relPath = relative.pathname && relative.pathname.split('/') || [],
-      psychotic = result.protocol && !slashedProtocol[result.protocol];
-
-  // if the url is a non-slashed url, then relative
-  // links like ../.. should be able
-  // to crawl up to the hostname, as well.  This is strange.
-  // result.protocol has already been set by now.
-  // Later on, put the first path part into the host field.
-  if (psychotic) {
-    result.hostname = '';
-    result.port = null;
-    if (result.host) {
-      if (srcPath[0] === '') srcPath[0] = result.host;
-      else srcPath.unshift(result.host);
-    }
-    result.host = '';
-    if (relative.protocol) {
-      relative.hostname = null;
-      relative.port = null;
-      if (relative.host) {
-        if (relPath[0] === '') relPath[0] = relative.host;
-        else relPath.unshift(relative.host);
-      }
-      relative.host = null;
-    }
-    mustEndAbs = mustEndAbs && (relPath[0] === '' || srcPath[0] === '');
-  }
-
-  if (isRelAbs) {
-    // it's absolute.
-    result.host = (relative.host || relative.host === '') ?
-                  relative.host : result.host;
-    result.hostname = (relative.hostname || relative.hostname === '') ?
-                      relative.hostname : result.hostname;
-    result.search = relative.search;
-    result.query = relative.query;
-    srcPath = relPath;
-    // fall through to the dot-handling below.
-  } else if (relPath.length) {
-    // it's relative
-    // throw away the existing file, and take the new path instead.
-    if (!srcPath) srcPath = [];
-    srcPath.pop();
-    srcPath = srcPath.concat(relPath);
-    result.search = relative.search;
-    result.query = relative.query;
-  } else if (!util.isNullOrUndefined(relative.search)) {
-    // just pull out the search.
-    // like href='?foo'.
-    // Put this after the other two cases because it simplifies the booleans
-    if (psychotic) {
-      result.hostname = result.host = srcPath.shift();
-      //occationaly the auth can get stuck only in host
-      //this especially happens in cases like
-      //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
-      var authInHost = result.host && result.host.indexOf('@') > 0 ?
-                       result.host.split('@') : false;
-      if (authInHost) {
-        result.auth = authInHost.shift();
-        result.host = result.hostname = authInHost.shift();
-      }
-    }
-    result.search = relative.search;
-    result.query = relative.query;
-    //to support http.request
-    if (!util.isNull(result.pathname) || !util.isNull(result.search)) {
-      result.path = (result.pathname ? result.pathname : '') +
-                    (result.search ? result.search : '');
-    }
-    result.href = result.format();
-    return result;
-  }
-
-  if (!srcPath.length) {
-    // no path at all.  easy.
-    // we've already handled the other stuff above.
-    result.pathname = null;
-    //to support http.request
-    if (result.search) {
-      result.path = '/' + result.search;
-    } else {
-      result.path = null;
-    }
-    result.href = result.format();
-    return result;
-  }
-
-  // if a url ENDs in . or .., then it must get a trailing slash.
-  // however, if it ends in anything else non-slashy,
-  // then it must NOT get a trailing slash.
-  var last = srcPath.slice(-1)[0];
-  var hasTrailingSlash = (
-      (result.host || relative.host || srcPath.length > 1) &&
-      (last === '.' || last === '..') || last === '');
-
-  // strip single dots, resolve double dots to parent dir
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = srcPath.length; i >= 0; i--) {
-    last = srcPath[i];
-    if (last === '.') {
-      srcPath.splice(i, 1);
-    } else if (last === '..') {
-      srcPath.splice(i, 1);
-      up++;
-    } else if (up) {
-      srcPath.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (!mustEndAbs && !removeAllDots) {
-    for (; up--; up) {
-      srcPath.unshift('..');
-    }
-  }
-
-  if (mustEndAbs && srcPath[0] !== '' &&
-      (!srcPath[0] || srcPath[0].charAt(0) !== '/')) {
-    srcPath.unshift('');
-  }
-
-  if (hasTrailingSlash && (srcPath.join('/').substr(-1) !== '/')) {
-    srcPath.push('');
-  }
-
-  var isAbsolute = srcPath[0] === '' ||
-      (srcPath[0] && srcPath[0].charAt(0) === '/');
-
-  // put the host back
-  if (psychotic) {
-    result.hostname = result.host = isAbsolute ? '' :
-                                    srcPath.length ? srcPath.shift() : '';
-    //occationaly the auth can get stuck only in host
-    //this especially happens in cases like
-    //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
-    var authInHost = result.host && result.host.indexOf('@') > 0 ?
-                     result.host.split('@') : false;
-    if (authInHost) {
-      result.auth = authInHost.shift();
-      result.host = result.hostname = authInHost.shift();
-    }
-  }
-
-  mustEndAbs = mustEndAbs || (result.host && srcPath.length);
-
-  if (mustEndAbs && !isAbsolute) {
-    srcPath.unshift('');
-  }
-
-  if (!srcPath.length) {
-    result.pathname = null;
-    result.path = null;
-  } else {
-    result.pathname = srcPath.join('/');
-  }
-
-  //to support request.http
-  if (!util.isNull(result.pathname) || !util.isNull(result.search)) {
-    result.path = (result.pathname ? result.pathname : '') +
-                  (result.search ? result.search : '');
-  }
-  result.auth = relative.auth || result.auth;
-  result.slashes = result.slashes || relative.slashes;
-  result.href = result.format();
-  return result;
-};
-
-Url.prototype.parseHost = function() {
-  var host = this.host;
-  var port = portPattern.exec(host);
-  if (port) {
-    port = port[0];
-    if (port !== ':') {
-      this.port = port.substr(1);
-    }
-    host = host.substr(0, host.length - port.length);
-  }
-  if (host) this.hostname = host;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/url/util.js":
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = {
-  isString: function(arg) {
-    return typeof(arg) === 'string';
-  },
-  isObject: function(arg) {
-    return typeof(arg) === 'object' && arg !== null;
-  },
-  isNull: function(arg) {
-    return arg === null;
-  },
-  isNullOrUndefined: function(arg) {
-    return arg == null;
-  }
-};
-
-
-/***/ }),
-
 /***/ "./node_modules/validator/index.js":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -67976,7 +71537,7 @@ module.exports = warning;
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(__resourceQuery) {/* global __resourceQuery */
-var url = __webpack_require__("./node_modules/url/url.js");
+var url = __webpack_require__("./node_modules/node-libs-browser/node_modules/url/url.js");
 var stripAnsi = __webpack_require__("./node_modules/strip-ansi/index.js");
 var socket = __webpack_require__("./node_modules/webpack-dev-server/client/socket.js");
 var overlay = __webpack_require__("./node_modules/webpack-dev-server/client/overlay.js");
@@ -68523,12 +72084,734 @@ if(true) {
 
 /***/ }),
 
-/***/ "./src/client/apps/authedApp.js":
+/***/ "./node_modules/whatwg-fetch/fetch.js":
+/***/ (function(module, exports) {
+
+(function(self) {
+  'use strict';
+
+  if (self.fetch) {
+    return
+  }
+
+  var support = {
+    searchParams: 'URLSearchParams' in self,
+    iterable: 'Symbol' in self && 'iterator' in Symbol,
+    blob: 'FileReader' in self && 'Blob' in self && (function() {
+      try {
+        new Blob()
+        return true
+      } catch(e) {
+        return false
+      }
+    })(),
+    formData: 'FormData' in self,
+    arrayBuffer: 'ArrayBuffer' in self
+  }
+
+  if (support.arrayBuffer) {
+    var viewClasses = [
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]'
+    ]
+
+    var isDataView = function(obj) {
+      return obj && DataView.prototype.isPrototypeOf(obj)
+    }
+
+    var isArrayBufferView = ArrayBuffer.isView || function(obj) {
+      return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
+    }
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = String(name)
+    }
+    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = String(value)
+    }
+    return value
+  }
+
+  // Build a destructive iterator for the value list
+  function iteratorFor(items) {
+    var iterator = {
+      next: function() {
+        var value = items.shift()
+        return {done: value === undefined, value: value}
+      }
+    }
+
+    if (support.iterable) {
+      iterator[Symbol.iterator] = function() {
+        return iterator
+      }
+    }
+
+    return iterator
+  }
+
+  function Headers(headers) {
+    this.map = {}
+
+    if (headers instanceof Headers) {
+      headers.forEach(function(value, name) {
+        this.append(name, value)
+      }, this)
+    } else if (Array.isArray(headers)) {
+      headers.forEach(function(header) {
+        this.append(header[0], header[1])
+      }, this)
+    } else if (headers) {
+      Object.getOwnPropertyNames(headers).forEach(function(name) {
+        this.append(name, headers[name])
+      }, this)
+    }
+  }
+
+  Headers.prototype.append = function(name, value) {
+    name = normalizeName(name)
+    value = normalizeValue(value)
+    var oldValue = this.map[name]
+    this.map[name] = oldValue ? oldValue+','+value : value
+  }
+
+  Headers.prototype['delete'] = function(name) {
+    delete this.map[normalizeName(name)]
+  }
+
+  Headers.prototype.get = function(name) {
+    name = normalizeName(name)
+    return this.has(name) ? this.map[name] : null
+  }
+
+  Headers.prototype.has = function(name) {
+    return this.map.hasOwnProperty(normalizeName(name))
+  }
+
+  Headers.prototype.set = function(name, value) {
+    this.map[normalizeName(name)] = normalizeValue(value)
+  }
+
+  Headers.prototype.forEach = function(callback, thisArg) {
+    for (var name in this.map) {
+      if (this.map.hasOwnProperty(name)) {
+        callback.call(thisArg, this.map[name], name, this)
+      }
+    }
+  }
+
+  Headers.prototype.keys = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push(name) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.values = function() {
+    var items = []
+    this.forEach(function(value) { items.push(value) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.entries = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push([name, value]) })
+    return iteratorFor(items)
+  }
+
+  if (support.iterable) {
+    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
+  }
+
+  function consumed(body) {
+    if (body.bodyUsed) {
+      return Promise.reject(new TypeError('Already read'))
+    }
+    body.bodyUsed = true
+  }
+
+  function fileReaderReady(reader) {
+    return new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        resolve(reader.result)
+      }
+      reader.onerror = function() {
+        reject(reader.error)
+      }
+    })
+  }
+
+  function readBlobAsArrayBuffer(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsArrayBuffer(blob)
+    return promise
+  }
+
+  function readBlobAsText(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsText(blob)
+    return promise
+  }
+
+  function readArrayBufferAsText(buf) {
+    var view = new Uint8Array(buf)
+    var chars = new Array(view.length)
+
+    for (var i = 0; i < view.length; i++) {
+      chars[i] = String.fromCharCode(view[i])
+    }
+    return chars.join('')
+  }
+
+  function bufferClone(buf) {
+    if (buf.slice) {
+      return buf.slice(0)
+    } else {
+      var view = new Uint8Array(buf.byteLength)
+      view.set(new Uint8Array(buf))
+      return view.buffer
+    }
+  }
+
+  function Body() {
+    this.bodyUsed = false
+
+    this._initBody = function(body) {
+      this._bodyInit = body
+      if (!body) {
+        this._bodyText = ''
+      } else if (typeof body === 'string') {
+        this._bodyText = body
+      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+        this._bodyBlob = body
+      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+        this._bodyFormData = body
+      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+        this._bodyText = body.toString()
+      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+        this._bodyArrayBuffer = bufferClone(body.buffer)
+        // IE 10-11 can't handle a DataView body.
+        this._bodyInit = new Blob([this._bodyArrayBuffer])
+      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+        this._bodyArrayBuffer = bufferClone(body)
+      } else {
+        throw new Error('unsupported BodyInit type')
+      }
+
+      if (!this.headers.get('content-type')) {
+        if (typeof body === 'string') {
+          this.headers.set('content-type', 'text/plain;charset=UTF-8')
+        } else if (this._bodyBlob && this._bodyBlob.type) {
+          this.headers.set('content-type', this._bodyBlob.type)
+        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
+        }
+      }
+    }
+
+    if (support.blob) {
+      this.blob = function() {
+        var rejected = consumed(this)
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyArrayBuffer) {
+          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as blob')
+        } else {
+          return Promise.resolve(new Blob([this._bodyText]))
+        }
+      }
+
+      this.arrayBuffer = function() {
+        if (this._bodyArrayBuffer) {
+          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
+        } else {
+          return this.blob().then(readBlobAsArrayBuffer)
+        }
+      }
+    }
+
+    this.text = function() {
+      var rejected = consumed(this)
+      if (rejected) {
+        return rejected
+      }
+
+      if (this._bodyBlob) {
+        return readBlobAsText(this._bodyBlob)
+      } else if (this._bodyArrayBuffer) {
+        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
+      } else if (this._bodyFormData) {
+        throw new Error('could not read FormData body as text')
+      } else {
+        return Promise.resolve(this._bodyText)
+      }
+    }
+
+    if (support.formData) {
+      this.formData = function() {
+        return this.text().then(decode)
+      }
+    }
+
+    this.json = function() {
+      return this.text().then(JSON.parse)
+    }
+
+    return this
+  }
+
+  // HTTP methods whose capitalization should be normalized
+  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
+
+  function normalizeMethod(method) {
+    var upcased = method.toUpperCase()
+    return (methods.indexOf(upcased) > -1) ? upcased : method
+  }
+
+  function Request(input, options) {
+    options = options || {}
+    var body = options.body
+
+    if (input instanceof Request) {
+      if (input.bodyUsed) {
+        throw new TypeError('Already read')
+      }
+      this.url = input.url
+      this.credentials = input.credentials
+      if (!options.headers) {
+        this.headers = new Headers(input.headers)
+      }
+      this.method = input.method
+      this.mode = input.mode
+      if (!body && input._bodyInit != null) {
+        body = input._bodyInit
+        input.bodyUsed = true
+      }
+    } else {
+      this.url = String(input)
+    }
+
+    this.credentials = options.credentials || this.credentials || 'omit'
+    if (options.headers || !this.headers) {
+      this.headers = new Headers(options.headers)
+    }
+    this.method = normalizeMethod(options.method || this.method || 'GET')
+    this.mode = options.mode || this.mode || null
+    this.referrer = null
+
+    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+      throw new TypeError('Body not allowed for GET or HEAD requests')
+    }
+    this._initBody(body)
+  }
+
+  Request.prototype.clone = function() {
+    return new Request(this, { body: this._bodyInit })
+  }
+
+  function decode(body) {
+    var form = new FormData()
+    body.trim().split('&').forEach(function(bytes) {
+      if (bytes) {
+        var split = bytes.split('=')
+        var name = split.shift().replace(/\+/g, ' ')
+        var value = split.join('=').replace(/\+/g, ' ')
+        form.append(decodeURIComponent(name), decodeURIComponent(value))
+      }
+    })
+    return form
+  }
+
+  function parseHeaders(rawHeaders) {
+    var headers = new Headers()
+    rawHeaders.split(/\r?\n/).forEach(function(line) {
+      var parts = line.split(':')
+      var key = parts.shift().trim()
+      if (key) {
+        var value = parts.join(':').trim()
+        headers.append(key, value)
+      }
+    })
+    return headers
+  }
+
+  Body.call(Request.prototype)
+
+  function Response(bodyInit, options) {
+    if (!options) {
+      options = {}
+    }
+
+    this.type = 'default'
+    this.status = 'status' in options ? options.status : 200
+    this.ok = this.status >= 200 && this.status < 300
+    this.statusText = 'statusText' in options ? options.statusText : 'OK'
+    this.headers = new Headers(options.headers)
+    this.url = options.url || ''
+    this._initBody(bodyInit)
+  }
+
+  Body.call(Response.prototype)
+
+  Response.prototype.clone = function() {
+    return new Response(this._bodyInit, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: new Headers(this.headers),
+      url: this.url
+    })
+  }
+
+  Response.error = function() {
+    var response = new Response(null, {status: 0, statusText: ''})
+    response.type = 'error'
+    return response
+  }
+
+  var redirectStatuses = [301, 302, 303, 307, 308]
+
+  Response.redirect = function(url, status) {
+    if (redirectStatuses.indexOf(status) === -1) {
+      throw new RangeError('Invalid status code')
+    }
+
+    return new Response(null, {status: status, headers: {location: url}})
+  }
+
+  self.Headers = Headers
+  self.Request = Request
+  self.Response = Response
+
+  self.fetch = function(input, init) {
+    return new Promise(function(resolve, reject) {
+      var request = new Request(input, init)
+      var xhr = new XMLHttpRequest()
+
+      xhr.onload = function() {
+        var options = {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+        }
+        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
+        var body = 'response' in xhr ? xhr.response : xhr.responseText
+        resolve(new Response(body, options))
+      }
+
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.ontimeout = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.open(request.method, request.url, true)
+
+      if (request.credentials === 'include') {
+        xhr.withCredentials = true
+      }
+
+      if ('responseType' in xhr && support.blob) {
+        xhr.responseType = 'blob'
+      }
+
+      request.headers.forEach(function(value, name) {
+        xhr.setRequestHeader(name, value)
+      })
+
+      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
+    })
+  }
+  self.fetch.polyfill = true
+})(typeof self !== 'undefined' ? self : this);
+
+
+/***/ }),
+
+/***/ "./src/actions/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utilities__ = __webpack_require__("./src/utilities/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_axios__ = __webpack_require__("./node_modules/axios/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_axios__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_whatwg_fetch__ = __webpack_require__("./node_modules/whatwg-fetch/fetch.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_whatwg_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_whatwg_fetch__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return LOGIN_REQUEST; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return LOGIN_SUCCESS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "i", function() { return LOGIN_FAILURE; });
+/* unused harmony export LOGOUT_REQUEST */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "j", function() { return LOGOUT_SUCCESS; });
+/* unused harmony export LOGOUT_FAILURE */
+/* unused harmony export getPlaylist */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return loginUser; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return logoutUser; });
+/* unused harmony export signupUser */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return FBLoginUser; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return reloginUser; });
+
+
+
+
+
+var LOGIN_REQUEST = 'LOGIN_REQUEST';
+var LOGIN_SUCCESS = 'LOGIN_SUCCESS';
+var LOGIN_FAILURE = 'LOGIN_FAILURE';
+var LOGOUT_REQUEST = 'LOGOUT_REQUEST';
+var LOGOUT_SUCCESS = 'LOGOUT_SUCCESS';
+var LOGOUT_FAILURE = 'LOGOUT_FAILURE';
+
+var getPlaylist = function getPlaylist() {
+  __WEBPACK_IMPORTED_MODULE_2_axios___default.a.get('result.json').then(function (res) {
+    console.log(res);
+  });
+};
+
+var LOGIN_URL = '/auth/login';
+var SIGNUP_URL = '/auth/signup';
+
+function authUser(creds, url) {
+  var config = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'email=' + creds.email + '&password=' + creds.password
+  };
+
+  return function (dispatch) {
+    dispatch(requestLogin(creds));
+    return window.fetch(url, config).then(function (response) {
+      return response.json().then(function (user) {
+        return { user: user, response: response };
+      });
+    }).then(function (_ref) {
+      var user = _ref.user,
+          response = _ref.response;
+
+      if (!response.ok) {
+        dispatch(loginError(user.message));
+        return Promise.reject(user);
+      } else {
+        __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('token', user.token);
+        __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('name', user.username);
+        __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('id', user.id);
+        dispatch(receiveLogin(user));
+        __WEBPACK_IMPORTED_MODULE_0_react_router__["b" /* browserHistory */].push('/dashboard');
+      }
+    }).catch(function (err) {
+      return console.log('Error: ', err);
+    });
+  };
+}
+
+var requestLogin = function requestLogin(creds) {
+  return {
+    type: LOGIN_REQUEST,
+    isFetching: true,
+    isAuthenticated: false,
+    creds: creds
+  };
+};
+
+var receiveLogin = function receiveLogin(userData) {
+  return {
+    type: LOGIN_SUCCESS,
+    isFetching: false,
+    isAuthenticated: true,
+    userData: userData
+  };
+};
+
+var loginError = function loginError(message) {
+  return {
+    type: LOGIN_FAILURE,
+    isFetching: false,
+    isAuthenticated: false,
+    message: message
+  };
+};
+
+var loginUser = function loginUser(creds) {
+  return authUser(creds, LOGIN_URL);
+};
+
+var requestLogout = function requestLogout() {
+  return {
+    type: LOGOUT_REQUEST,
+    isFetching: true,
+    isAuthenticated: true
+  };
+};
+
+var receiveLogout = function receiveLogout() {
+  return {
+    type: LOGOUT_SUCCESS,
+    isFetching: false,
+    isAuthenticated: false
+  };
+};
+
+var logoutUser = function logoutUser() {
+  return function (dispatch) {
+    dispatch(requestLogout());
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].removeItem('token');
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].removeItem('name');
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].removeItem('id');
+    dispatch(receiveLogout());
+    __WEBPACK_IMPORTED_MODULE_0_react_router__["b" /* browserHistory */].push('/');
+  };
+};
+
+var signupUser = function signupUser(creds) {
+  return authUser(creds, SIGNUP_URL);
+};
+
+var requestFBLogin = function requestFBLogin() {
+  return {
+    type: FB_LOGIN_REQUEST,
+    isFetching: true,
+    isAuthenticated: false,
+    creds: ''
+  };
+};
+
+var receiveFBLogin = function receiveFBLogin(user) {
+  return {
+    type: FB_LOGIN_SUCCESS,
+    isFetching: false,
+    isAuthenticated: true,
+    id_token: user.id_token,
+    username: user.username,
+    userId: user.id
+  };
+};
+
+var FBLoginUser = function FBLoginUser(user) {
+  return function (dispatch) {
+    dispatch(requestFBLogin());
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('id_token', user.id_token);
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('username', user.username);
+    __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].setItem('userId', user.id);
+    dispatch(receiveFBLogin(user));
+    __WEBPACK_IMPORTED_MODULE_0_react_router__["b" /* browserHistory */].push('/browse');
+  };
+};
+
+var reloginUser = function reloginUser(token) {
+  var config = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'bearer ' + token
+    }
+  };
+
+  return function (dispatch) {
+    return window.fetch('/auth/relogin', config).then(function (response) {
+      if (!response.ok) {
+        __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].clear();
+      } else {
+        var user = {
+          token: __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('token'),
+          username: __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('name'),
+          id: __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('id')
+        };
+        dispatch(receiveLogin(user));
+        __WEBPACK_IMPORTED_MODULE_0_react_router__["b" /* browserHistory */].push('/dashboard');
+      }
+    }).catch(function (err) {
+      return console.log('Error: ', err);
+    });
+  };
+};
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(LOGIN_REQUEST, 'LOGIN_REQUEST', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGIN_SUCCESS, 'LOGIN_SUCCESS', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGIN_FAILURE, 'LOGIN_FAILURE', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGOUT_REQUEST, 'LOGOUT_REQUEST', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGOUT_SUCCESS, 'LOGOUT_SUCCESS', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGOUT_FAILURE, 'LOGOUT_FAILURE', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(getPlaylist, 'getPlaylist', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(LOGIN_URL, 'LOGIN_URL', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(SIGNUP_URL, 'SIGNUP_URL', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(authUser, 'authUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(requestLogin, 'requestLogin', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(receiveLogin, 'receiveLogin', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(loginError, 'loginError', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(loginUser, 'loginUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(requestLogout, 'requestLogout', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(receiveLogout, 'receiveLogout', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(logoutUser, 'logoutUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(signupUser, 'signupUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(requestFBLogin, 'requestFBLogin', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(receiveFBLogin, 'receiveFBLogin', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(FBLoginUser, 'FBLoginUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+
+  __REACT_HOT_LOADER__.register(reloginUser, 'reloginUser', '/Users/yding/projects/authentication-demo-app/src/actions/index.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/apps/authedApp.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_header_AuthedHeader__ = __webpack_require__("./src/components/header/AuthedHeader.js");
+
 
 
 function AuthedApp(_ref) {
@@ -68537,11 +72820,7 @@ function AuthedApp(_ref) {
   return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
     'div',
     null,
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-      'h1',
-      null,
-      ' Authed App '
-    ),
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1__components_header_AuthedHeader__["a" /* default */], null),
     children
   );
 }
@@ -68555,22 +72834,67 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(AuthedApp, 'AuthedApp', '/Users/yding/projects/authentication-demo-app/src/client/apps/authedApp.js');
+  __REACT_HOT_LOADER__.register(AuthedApp, 'AuthedApp', '/Users/yding/projects/authentication-demo-app/src/apps/authedApp.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/apps/authedApp.js');
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/apps/authedApp.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/apps/unauthedApp.js":
+/***/ "./src/apps/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux__ = __webpack_require__("./node_modules/react-redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes__ = __webpack_require__("./src/routes/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__store__ = __webpack_require__("./src/store/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__store___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__store__);
+
+
+
+
+
+
+
+function App() {
+  return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+    __WEBPACK_IMPORTED_MODULE_1_react_redux__["a" /* Provider */],
+    { store: __WEBPACK_IMPORTED_MODULE_4__store___default.a },
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2_react_router__["a" /* Router */], { history: __WEBPACK_IMPORTED_MODULE_2_react_router__["b" /* browserHistory */], routes: __WEBPACK_IMPORTED_MODULE_3__routes__["a" /* default */] })
+  );
+}
+
+var _default = App;
+/* harmony default export */ __webpack_exports__["default"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(App, 'App', '/Users/yding/projects/authentication-demo-app/src/apps/index.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/apps/index.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/apps/unauthedApp.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_header_UnauthedHeader__ = __webpack_require__("./src/client/components/header/UnauthedHeader.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_header_UnauthedHeader__ = __webpack_require__("./src/components/header/UnauthedHeader.js");
 
 
 
@@ -68581,7 +72905,6 @@ function UnauthedApp(_ref) {
     'div',
     null,
     __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1__components_header_UnauthedHeader__["a" /* default */], null),
-    '>',
     children
   );
 }
@@ -68595,16 +72918,168 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(UnauthedApp, 'UnauthedApp', '/Users/yding/projects/authentication-demo-app/src/client/apps/unauthedApp.js');
+  __REACT_HOT_LOADER__.register(UnauthedApp, 'UnauthedApp', '/Users/yding/projects/authentication-demo-app/src/apps/unauthedApp.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/apps/unauthedApp.js');
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/apps/unauthedApp.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/components/header/UnauthedHeader.js":
+/***/ "./src/components/header/AuthedHeader.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__ = __webpack_require__("./node_modules/react-bootstrap/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions__ = __webpack_require__("./src/actions/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_redux__ = __webpack_require__("./node_modules/react-redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__style_css__ = __webpack_require__("./src/components/header/style.css");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__style_css__);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+
+
+
+
+
+
+
+var AuthedHeader = function (_Component) {
+  _inherits(AuthedHeader, _Component);
+
+  function AuthedHeader() {
+    _classCallCheck(this, AuthedHeader);
+
+    return _possibleConstructorReturn(this, (AuthedHeader.__proto__ || Object.getPrototypeOf(AuthedHeader)).apply(this, arguments));
+  }
+
+  _createClass(AuthedHeader, [{
+    key: 'render',
+    value: function render() {
+      var _props = this.props,
+          handleSignout = _props.handleSignout,
+          name = _props.name,
+          email = _props.email;
+
+
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */],
+        { inverse: true },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Header,
+          null,
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Brand,
+            null,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              __WEBPACK_IMPORTED_MODULE_4_react_router__["e" /* Link */],
+              { to: '/' },
+              'React App'
+            )
+          ),
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Toggle, null)
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Collapse,
+          null,
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Nav */],
+            null,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["c" /* NavItem */],
+              { eventKey: '2' },
+              'Browse'
+            )
+          ),
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Nav */],
+            { pullRight: true },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["d" /* NavDropdown */],
+              { eventKey: '1', title: 'my account', id: 'menu-dropdown' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["e" /* MenuItem */],
+                { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.dropdown },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["f" /* Row */],
+                  null,
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["g" /* Col */],
+                    { sm: 4 },
+                    'image'
+                  ),
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["g" /* Col */],
+                    { sm: 8 },
+                    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                      'strong',
+                      null,
+                      name
+                    ),
+                    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                      'p',
+                      null,
+                      email
+                    )
+                  )
+                )
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["e" /* MenuItem */],
+                { eventKey: '1.5', onClick: handleSignout },
+                'Sign Out',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["h" /* Glyphicon */], { glyph: 'log-out', className: 'pull-right' })
+              )
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return AuthedHeader;
+}(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]);
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    handleSignout: function handleSignout() {
+      dispatch(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__actions__["a" /* logoutUser */])());
+    }
+  };
+};
+
+var _default = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3_react_redux__["b" /* connect */])(null, mapDispatchToProps)(AuthedHeader);
+
+/* harmony default export */ __webpack_exports__["a"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(AuthedHeader, 'AuthedHeader', '/Users/yding/projects/authentication-demo-app/src/components/header/AuthedHeader.js');
+
+  __REACT_HOT_LOADER__.register(mapDispatchToProps, 'mapDispatchToProps', '/Users/yding/projects/authentication-demo-app/src/components/header/AuthedHeader.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/components/header/AuthedHeader.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/components/header/UnauthedHeader.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -68614,6 +73089,8 @@ var _temp = function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_router_bootstrap__ = __webpack_require__("./node_modules/react-router-bootstrap/lib/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_router_bootstrap___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_react_router_bootstrap__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__logo__ = __webpack_require__("./src/components/logo/index.js");
+
 
 
 
@@ -68621,33 +73098,33 @@ var _temp = function () {
 
 function UnauthedHeader() {
   return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-    __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Navbar */],
+    __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */],
     { inverse: true },
     __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-      __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Navbar */].Header,
+      __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Header,
       null,
       __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-        __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Navbar */].Brand,
+        __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Brand,
         null,
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           __WEBPACK_IMPORTED_MODULE_3_react_router__["e" /* Link */],
           { to: '/' },
-          'React App'
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__logo__["a" /* default */], null)
         )
       ),
-      __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Navbar */].Toggle, null)
+      __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Toggle, null)
     ),
     __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-      __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Navbar */].Collapse,
+      __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["a" /* Navbar */].Collapse,
       null,
       __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-        __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["c" /* Nav */],
+        __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["b" /* Nav */],
         { pullRight: true },
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           __WEBPACK_IMPORTED_MODULE_2_react_router_bootstrap__["LinkContainer"],
           { to: '/login' },
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["d" /* NavItem */],
+            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["c" /* NavItem */],
             { eventKey: 1 },
             'Log In'
           )
@@ -68656,7 +73133,7 @@ function UnauthedHeader() {
           __WEBPACK_IMPORTED_MODULE_2_react_router_bootstrap__["LinkContainer"],
           { to: '/signup' },
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["d" /* NavItem */],
+            __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["c" /* NavItem */],
             { eventKey: 2 },
             'Sign Up'
           )
@@ -68675,59 +73152,22 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(UnauthedHeader, 'UnauthedHeader', '/Users/yding/projects/authentication-demo-app/src/client/components/header/UnauthedHeader.js');
+  __REACT_HOT_LOADER__.register(UnauthedHeader, 'UnauthedHeader', '/Users/yding/projects/authentication-demo-app/src/components/header/UnauthedHeader.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/components/header/UnauthedHeader.js');
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/components/header/UnauthedHeader.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/components/index.js":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__style_css__ = __webpack_require__("./src/client/components/style.css");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__style_css__);
-
-
-
-function Hello() {
-  return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-    'div',
-    { className: __WEBPACK_IMPORTED_MODULE_1__style_css___default.a.hello },
-    'finally it\'s workidsdsng lalalaand server is working too'
-  );
-}
-
-var _default = Hello;
-/* harmony default export */ __webpack_exports__["a"] = _default;
-;
-
-var _temp = function () {
-  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
-    return;
-  }
-
-  __REACT_HOT_LOADER__.register(Hello, 'Hello', '/Users/yding/projects/authentication-demo-app/src/client/components/index.js');
-
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/components/index.js');
-}();
-
-;
-
-/***/ }),
-
-/***/ "./src/client/components/style.css":
+/***/ "./src/components/header/style.css":
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/components/style.css");
+var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/header/style.css");
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__("./node_modules/style-loader/addStyles.js")(content, {});
@@ -68736,8 +73176,8 @@ if(content.locals) module.exports = content.locals;
 if(true) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/components/style.css", function() {
-			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/components/style.css");
+		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/header/style.css", function() {
+			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/header/style.css");
 			if(typeof newContent === 'string') newContent = [[module.i, newContent, '']];
 			update(newContent);
 		});
@@ -68748,19 +73188,85 @@ if(true) {
 
 /***/ }),
 
-/***/ "./src/client/containers/login/index.js":
+/***/ "./src/components/logo/index.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utilities__ = __webpack_require__("./src/client/utilities/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_bootstrap__ = __webpack_require__("./node_modules/react-bootstrap/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_validator__ = __webpack_require__("./node_modules/validator/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_validator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_validator__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__style_css__ = __webpack_require__("./src/client/containers/login/style.css");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__style_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__style_css__ = __webpack_require__("./src/components/logo/style.css");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__style_css__);
+
+
+
+function Logo() {
+  return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+    'div',
+    { className: __WEBPACK_IMPORTED_MODULE_1__style_css___default.a.logo },
+    'TubeFlix'
+  );
+}
+
+var _default = Logo;
+/* harmony default export */ __webpack_exports__["a"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(Logo, 'Logo', '/Users/yding/projects/authentication-demo-app/src/components/logo/index.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/components/logo/index.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/components/logo/style.css":
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/logo/style.css");
+if(typeof content === 'string') content = [[module.i, content, '']];
+// add the styles to the DOM
+var update = __webpack_require__("./node_modules/style-loader/addStyles.js")(content, {});
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(true) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/logo/style.css", function() {
+			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/components/logo/style.css");
+			if(typeof newContent === 'string') newContent = [[module.i, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+
+/***/ "./src/containers/login/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux__ = __webpack_require__("./node_modules/react-redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities__ = __webpack_require__("./src/utilities/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__actions__ = __webpack_require__("./src/actions/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_react_bootstrap__ = __webpack_require__("./node_modules/react-bootstrap/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_validator__ = __webpack_require__("./node_modules/validator/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_validator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_validator__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__style_css__ = __webpack_require__("./src/containers/login/style.css");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__style_css__);
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -68768,6 +73274,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+
 
 
 
@@ -68813,10 +73321,10 @@ var Login = function (_Component) {
   _createClass(Login, [{
     key: '__componentDidMount__REACT_HOT_LOADER__',
     value: function __componentDidMount__REACT_HOT_LOADER__() {
-      if (typeof __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__utilities__["a" /* getParameterByName */])('id_token') === 'string') {
-        var idToken = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__utilities__["a" /* getParameterByName */])('id_token');
-        var username = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__utilities__["a" /* getParameterByName */])('username');
-        var id = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__utilities__["a" /* getParameterByName */])('id');
+      if (typeof __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__utilities__["b" /* getParameterByName */])('id_token') === 'string') {
+        var idToken = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__utilities__["b" /* getParameterByName */])('id_token');
+        var username = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__utilities__["b" /* getParameterByName */])('username');
+        var id = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__utilities__["b" /* getParameterByName */])('id');
         this.props.fbLogin({
           idToken: idToken,
           username: username,
@@ -68829,8 +73337,12 @@ var Login = function (_Component) {
     value: function __handleEmail__REACT_HOT_LOADER__(e) {
       var value = e.target.value.trim();
       this.setState({ email: value });
-      if (!__WEBPACK_IMPORTED_MODULE_4_validator___default.a.isEmail(value)) {
+      if (!__WEBPACK_IMPORTED_MODULE_6_validator___default.a.isEmail(value)) {
         this.setState({ emailError: value + ' is not a valid email' });
+      } else if (value === '') {
+        this.setState({ emailError: 'Email is required' });
+      } else {
+        this.setState({ emailError: '' });
       }
     }
   }, {
@@ -68838,88 +73350,102 @@ var Login = function (_Component) {
     value: function __handlePassword__REACT_HOT_LOADER__(e) {
       var value = e.target.value.trim();
       this.setState({ password: value });
-      if (value.length >= 4 && value.length <= 60) {
+      if (value.length < 4 && value.length > 60) {
         this.setState({ passwordError: 'Your password must contain between 4 and 60 characters' });
+      } else {
+        this.setState({ passwordError: '' });
       }
     }
   }, {
     key: '__handleLogin__REACT_HOT_LOADER__',
     value: function __handleLogin__REACT_HOT_LOADER__() {
-      // const creds = { email: this.state.email.value, password: this.state.password.value }
-      // this.props.onLoginClick(creds)
+      var creds = { email: this.state.email, password: this.state.password };
+      this.props.handleLogin(creds);
     }
   }, {
     key: 'render',
     value: function render() {
       var errorMessage = this.props.errorMessage;
+      var _state = this.state,
+          emailError = _state.emailError,
+          passwordError = _state.passwordError;
 
 
       return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
         'div',
-        { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.auth },
+        { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.auth },
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           'form',
           null,
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'h1',
-            { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.heading },
+            { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.heading },
             'Log in'
           ),
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'label',
-            { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.group },
+            { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.group },
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'span',
               null,
               'Email'
             ),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { type: 'text', className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.input, onChange: this.handleEmail }),
-            this.state.email.error && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { type: 'text', className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.input, onChange: this.handleEmail }),
+            emailError && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'p',
-              { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.error },
-              this.state.email.error
+              { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.error },
+              emailError
             )
           ),
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'label',
-            { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.group },
+            { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.group },
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'span',
               null,
               'Password'
             ),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { type: 'password', className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.input, onBlur: this.handlePassword }),
-            this.state.password.error && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { type: 'password', className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.input, onBlur: this.handlePassword }),
+            passwordError && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'p',
-              { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.error },
-              this.state.password.error
+              { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.error },
+              passwordError
             )
           ),
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            __WEBPACK_IMPORTED_MODULE_3_react_bootstrap__["a" /* Button */],
+            __WEBPACK_IMPORTED_MODULE_5_react_bootstrap__["i" /* Button */],
             { block: true, bsStyle: 'primary', bsSize: 'large', onClick: this.handleLogin },
             'Log In'
           ),
           errorMessage && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'p',
-            { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.error },
+            { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.error },
             errorMessage
           )
         ),
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           'div',
-          { className: __WEBPACK_IMPORTED_MODULE_5__style_css___default.a.link },
+          { className: __WEBPACK_IMPORTED_MODULE_7__style_css___default.a.link },
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'a',
             { href: '/auth/facebook' },
             'Log in via Facebook'
           ),
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            null,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              __WEBPACK_IMPORTED_MODULE_2_react_router__["e" /* Link */],
+              { to: '/dashboard' },
+              'Dashboard'
+            )
+          ),
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'p',
             null,
             'Do not have an account? ',
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-              __WEBPACK_IMPORTED_MODULE_1_react_router__["e" /* Link */],
+              __WEBPACK_IMPORTED_MODULE_2_react_router__["e" /* Link */],
               { to: '/signup' },
               'Sign up now.'
             )
@@ -68932,30 +73458,31 @@ var Login = function (_Component) {
   return Login;
 }(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]);
 
-/*
 Login.propTypes = {
-  onLoginClick: PropTypes.func.isRequired,
-  errorMessage: PropTypes.string
-}
+  handleLogin: __WEBPACK_IMPORTED_MODULE_0_react__["PropTypes"].func.isRequired,
+  handleFBLogin: __WEBPACK_IMPORTED_MODULE_0_react__["PropTypes"].func.isRequired,
+  errorMessage: __WEBPACK_IMPORTED_MODULE_0_react__["PropTypes"].string
+};
 
-const mapDispatchToProps = (dispatch) => ({
-  onLoginClick: (creds) => {
-    dispatch(loginUser(creds))
-  },
-  fbLogin: (id_token, username) => {
-    dispatch(FBLoginUser(id_token, username))
-  }
-})
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    handleLogin: function handleLogin(creds) {
+      dispatch(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4__actions__["b" /* loginUser */])(creds));
+    },
+    handleFBLogin: function handleFBLogin(token, username) {
+      dispatch(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4__actions__["c" /* FBLoginUser */])(token, username));
+    }
+  };
+};
 
-const mapStateToProps = (state) => ({
-  errorMessage: state.auth.errorMessage
-})
+var mapStateToProps = function mapStateToProps(state) {
+  return {
+    errorMessage: state.auth.errorMessage
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login)
-*/
+var _default = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_react_redux__["b" /* connect */])(mapStateToProps, mapDispatchToProps)(Login);
 
-
-var _default = Login;
 /* harmony default export */ __webpack_exports__["a"] = _default;
 ;
 
@@ -68964,22 +73491,26 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(Login, 'Login', '/Users/yding/projects/authentication-demo-app/src/client/containers/login/index.js');
+  __REACT_HOT_LOADER__.register(Login, 'Login', '/Users/yding/projects/authentication-demo-app/src/containers/login/index.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/containers/login/index.js');
+  __REACT_HOT_LOADER__.register(mapDispatchToProps, 'mapDispatchToProps', '/Users/yding/projects/authentication-demo-app/src/containers/login/index.js');
+
+  __REACT_HOT_LOADER__.register(mapStateToProps, 'mapStateToProps', '/Users/yding/projects/authentication-demo-app/src/containers/login/index.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/containers/login/index.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/containers/login/style.css":
+/***/ "./src/containers/login/style.css":
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/containers/login/style.css");
+var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/login/style.css");
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__("./node_modules/style-loader/addStyles.js")(content, {});
@@ -68988,8 +73519,8 @@ if(content.locals) module.exports = content.locals;
 if(true) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/containers/login/style.css", function() {
-			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/client/containers/login/style.css");
+		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/login/style.css", function() {
+			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/login/style.css");
 			if(typeof newContent === 'string') newContent = [[module.i, newContent, '']];
 			update(newContent);
 		});
@@ -69000,17 +73531,24 @@ if(true) {
 
 /***/ }),
 
-/***/ "./src/client/index.js":
+/***/ "./src/containers/welcome/index.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux__ = __webpack_require__("./node_modules/react-redux/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes__ = __webpack_require__("./src/client/routes/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__store__ = __webpack_require__("./src/client/store/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_redux__ = __webpack_require__("./node_modules/react-redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__actions__ = __webpack_require__("./src/actions/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__style_css__ = __webpack_require__("./src/containers/welcome/style.css");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__style_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__style_css__);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 
 
@@ -69018,41 +73556,72 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-function App() {
-  return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-    __WEBPACK_IMPORTED_MODULE_1_react_redux__["a" /* Provider */],
-    { store: __WEBPACK_IMPORTED_MODULE_4__store__["a" /* default */] },
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2_react_router__["a" /* Router */], { history: __WEBPACK_IMPORTED_MODULE_2_react_router__["b" /* browserHistory */], routes: __WEBPACK_IMPORTED_MODULE_3__routes__["a" /* default */] })
-  );
-}
+var Welcome = function (_Component) {
+  _inherits(Welcome, _Component);
 
-var _default = App;
-/* harmony default export */ __webpack_exports__["default"] = _default;
-;
+  function Welcome() {
+    _classCallCheck(this, Welcome);
 
-var _temp = function () {
-  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
-    return;
+    return _possibleConstructorReturn(this, (Welcome.__proto__ || Object.getPrototypeOf(Welcome)).apply(this, arguments));
   }
 
-  __REACT_HOT_LOADER__.register(App, 'App', '/Users/yding/projects/authentication-demo-app/src/client/index.js');
+  _createClass(Welcome, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      if (window.localStorage.getItem('token')) {
+        var token = window.localStorage.getItem('token');
+        this.props.handleLogin(token);
+      }
+    }
+  }, {
+    key: 'handleLogin',
+    value: function handleLogin() {
+      __WEBPACK_IMPORTED_MODULE_1_react_router__["b" /* browserHistory */].push('/login');
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { className: __WEBPACK_IMPORTED_MODULE_4__style_css___default.a.intro },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'h1',
+          null,
+          'Watch your YouTube playlists,'
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'h2',
+          null,
+          'in the Netflix way'
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'a',
+          { className: __WEBPACK_IMPORTED_MODULE_4__style_css___default.a.login },
+          'Log In'
+        )
+      );
+    }
+  }]);
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/index.js');
-}();
+  return Welcome;
+}(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]);
 
-;
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    handleLogin: function handleLogin(token) {
+      dispatch(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__actions__["d" /* reloginUser */])(token));
+    }
+  };
+};
 
-/***/ }),
+var mapStateToProps = function mapStateToProps(state) {
+  return {
+    isFetching: state.auth.isFetching
+  };
+};
 
-/***/ "./src/client/reducers/index.js":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+var _default = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_react_redux__["b" /* connect */])(mapStateToProps, mapDispatchToProps)(Welcome);
 
-"use strict";
-function reducer(state) {
-  return state;
-}
-
-var _default = reducer;
 /* harmony default export */ __webpack_exports__["a"] = _default;
 ;
 
@@ -69061,26 +73630,250 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(reducer, "reducer", "/Users/yding/projects/authentication-demo-app/src/client/reducers/index.js");
+  __REACT_HOT_LOADER__.register(Welcome, 'Welcome', '/Users/yding/projects/authentication-demo-app/src/containers/welcome/index.js');
 
-  __REACT_HOT_LOADER__.register(_default, "default", "/Users/yding/projects/authentication-demo-app/src/client/reducers/index.js");
+  __REACT_HOT_LOADER__.register(mapDispatchToProps, 'mapDispatchToProps', '/Users/yding/projects/authentication-demo-app/src/containers/welcome/index.js');
+
+  __REACT_HOT_LOADER__.register(mapStateToProps, 'mapStateToProps', '/Users/yding/projects/authentication-demo-app/src/containers/welcome/index.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/containers/welcome/index.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/routes/index.js":
+/***/ "./src/containers/welcome/style.css":
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/welcome/style.css");
+if(typeof content === 'string') content = [[module.i, content, '']];
+// add the styles to the DOM
+var update = __webpack_require__("./node_modules/style-loader/addStyles.js")(content, {});
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(true) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/welcome/style.css", function() {
+			var newContent = __webpack_require__("./node_modules/css-loader/index.js?modules!./node_modules/postcss-loader/index.js!./src/containers/welcome/style.css");
+			if(typeof newContent === 'string') newContent = [[module.i, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+
+/***/ "./src/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom__ = __webpack_require__("./node_modules/react-dom/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_dom__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__ = __webpack_require__("./node_modules/react-hot-loader/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_hot_loader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_react_hot_loader__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__apps__ = __webpack_require__("./src/apps/index.js");
+
+
+
+
+
+delete __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__["AppContainer"].prototype.unstable_handleError;
+
+function render(Component) {
+  __WEBPACK_IMPORTED_MODULE_1_react_dom___default.a.render(__WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+    __WEBPACK_IMPORTED_MODULE_2_react_hot_loader__["AppContainer"],
+    null,
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Component, null)
+  ), document.getElementById('root'));
+}
+
+render(__WEBPACK_IMPORTED_MODULE_3__apps__["default"]);
+
+// Hot Module Replacement API
+if (true) {
+  module.hot.accept("./src/apps/index.js", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ __WEBPACK_IMPORTED_MODULE_3__apps__ = __webpack_require__("./src/apps/index.js"); (function () {
+    render(__WEBPACK_IMPORTED_MODULE_3__apps__["default"]);
+  })(__WEBPACK_OUTDATED_DEPENDENCIES__); });
+}
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(render, 'render', '/Users/yding/projects/authentication-demo-app/src/index.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/reducers/auth.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__actions__ = __webpack_require__("./src/actions/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utilities__ = __webpack_require__("./src/utilities/index.js");
+
+
+
+var auth = function auth() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+    isFetching: false,
+    isAuthenticated: !!__WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('token'),
+    username: __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('username') ? __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('username') : '',
+    userId: __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('userId') ? __WEBPACK_IMPORTED_MODULE_1__utilities__["a" /* localStorage */].getItem('userId') : ''
+  };
+  var action = arguments[1];
+
+  switch (action.type) {
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["e" /* LOGIN_REQUEST */]:
+      return Object.assign({}, state, {
+        isFetching: true,
+        isAuthenticated: false,
+        user: action.creds
+      });
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["FB_LOGIN_SUCCESS"]:
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["g" /* LOGIN_SUCCESS */]:
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["SIGNUP_SUCCESS"]:
+      return Object.assign({}, state, {
+        isFetching: false,
+        isAuthenticated: true,
+        errorMessage: '',
+        username: action.username,
+        userId: action.userId
+      });
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["i" /* LOGIN_FAILURE */]:
+      return Object.assign({}, state, {
+        isFetching: false,
+        isAuthenticated: false,
+        errorMessage: action.message
+      });
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["j" /* LOGOUT_SUCCESS */]:
+      return Object.assign({}, state, {
+        isFetching: true,
+        isAuthenticated: false
+      });
+    default:
+      return state;
+  }
+};
+
+var _default = auth;
+/* harmony default export */ __webpack_exports__["a"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(auth, 'auth', '/Users/yding/projects/authentication-demo-app/src/reducers/auth.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/reducers/auth.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/reducers/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux__ = __webpack_require__("./node_modules/redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__auth__ = __webpack_require__("./src/reducers/auth.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__video__ = __webpack_require__("./src/reducers/video.js");
+
+
+
+
+var reducer = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux__["d" /* combineReducers */])({
+  auth: __WEBPACK_IMPORTED_MODULE_1__auth__["a" /* default */],
+  video: __WEBPACK_IMPORTED_MODULE_2__video__["a" /* default */]
+});
+
+var _default = reducer;
+/* harmony default export */ __webpack_exports__["default"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(reducer, 'reducer', '/Users/yding/projects/authentication-demo-app/src/reducers/index.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/reducers/index.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/reducers/video.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__actions__ = __webpack_require__("./src/actions/index.js");
+
+
+var video = function video() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+    isFetching: false
+  };
+  var action = arguments[1];
+
+  switch (action.type) {
+    case __WEBPACK_IMPORTED_MODULE_0__actions__["e" /* LOGIN_REQUEST */]:
+    default:
+      return state;
+  }
+};
+
+var _default = video;
+/* harmony default export */ __webpack_exports__["a"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(video, 'video', '/Users/yding/projects/authentication-demo-app/src/reducers/video.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/reducers/video.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/routes/index.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__("./node_modules/react/react.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_router__ = __webpack_require__("./node_modules/react-router/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__apps_authedApp__ = __webpack_require__("./src/client/apps/authedApp.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__apps_unauthedApp__ = __webpack_require__("./src/client/apps/unauthedApp.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components__ = __webpack_require__("./src/client/components/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__containers_login__ = __webpack_require__("./src/client/containers/login/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__apps_authedApp__ = __webpack_require__("./src/apps/authedApp.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__apps_unauthedApp__ = __webpack_require__("./src/apps/unauthedApp.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__containers_welcome__ = __webpack_require__("./src/containers/welcome/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__containers_login__ = __webpack_require__("./src/containers/login/index.js");
+throw new Error("Cannot find module \"@containers/playlists\"");
+
 
 
 
@@ -69096,13 +73889,13 @@ var routes = __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
   __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
     __WEBPACK_IMPORTED_MODULE_1_react_router__["c" /* Route */],
     { path: '/', component: __WEBPACK_IMPORTED_MODULE_3__apps_unauthedApp__["a" /* default */] },
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["d" /* IndexRoute */], { component: __WEBPACK_IMPORTED_MODULE_4__components__["a" /* default */] }),
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["c" /* Route */], { path: '/login', component: __WEBPACK_IMPORTED_MODULE_5__containers_login__["a" /* default */] })
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["d" /* IndexRoute */], { component: __WEBPACK_IMPORTED_MODULE_4__containers_welcome__["a" /* default */] }),
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["c" /* Route */], { path: 'login', component: __WEBPACK_IMPORTED_MODULE_5__containers_login__["a" /* default */] })
   ),
   __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
     __WEBPACK_IMPORTED_MODULE_1_react_router__["c" /* Route */],
     { path: '/dashboard', component: __WEBPACK_IMPORTED_MODULE_2__apps_authedApp__["a" /* default */] },
-    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["d" /* IndexRoute */], { component: __WEBPACK_IMPORTED_MODULE_4__components__["a" /* default */] })
+    __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_1_react_router__["d" /* IndexRoute */], { component: __WEBPACK_IMPORTED_MODULE_6__containers_playlists___default.a })
   )
 );
 
@@ -69115,25 +73908,47 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(routes, 'routes', '/Users/yding/projects/authentication-demo-app/src/client/routes/index.js');
+  __REACT_HOT_LOADER__.register(routes, 'routes', '/Users/yding/projects/authentication-demo-app/src/routes/index.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/routes/index.js');
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/routes/index.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/store/index.js":
+/***/ "./src/store/index.js":
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process) {if (process.env.NODE_ENV === 'production') {
+  module.exports = __webpack_require__("./src/store/store.prod.js");
+} else {
+  module.exports = __webpack_require__("./src/store/store.dev.js");
+}
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+}();
+
+;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./src/store/store.dev.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_thunk__ = __webpack_require__("./node_modules/redux-thunk/lib/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_thunk___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_redux_thunk__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux_logger__ = __webpack_require__("./node_modules/redux-logger/lib/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux_logger___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_redux_logger__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_redux__ = __webpack_require__("./node_modules/redux/es/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__reducers__ = __webpack_require__("./src/client/reducers/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__reducers__ = __webpack_require__("./src/reducers/index.js");
 
 
 
@@ -69141,10 +73956,20 @@ var _temp = function () {
 
 var loggerMiddleware = __WEBPACK_IMPORTED_MODULE_1_redux_logger___default()();
 
-var store = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_redux__["a" /* createStore */])(__WEBPACK_IMPORTED_MODULE_3__reducers__["a" /* default */], __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_redux__["b" /* applyMiddleware */])(__WEBPACK_IMPORTED_MODULE_0_redux_thunk___default.a, loggerMiddleware));
+var preloadedState = window.__PRELOADED_STATE__;
+delete window.__PRELOADED_STATE__;
+
+var store = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_redux__["b" /* createStore */])(__WEBPACK_IMPORTED_MODULE_3__reducers__["default"], preloadedState, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_redux__["c" /* applyMiddleware */])(__WEBPACK_IMPORTED_MODULE_0_redux_thunk___default.a, loggerMiddleware));
+
+if (true) {
+  module.hot.accept("./src/reducers/index.js", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ __WEBPACK_IMPORTED_MODULE_3__reducers__ = __webpack_require__("./src/reducers/index.js"); (function () {
+    var nextRootReducer = __webpack_require__("./src/reducers/index.js");
+    store.replaceReducer(nextRootReducer);
+  })(__WEBPACK_OUTDATED_DEPENDENCIES__); });
+}
 
 var _default = store;
-/* harmony default export */ __webpack_exports__["a"] = _default;
+/* harmony default export */ __webpack_exports__["default"] = _default;
 ;
 
 var _temp = function () {
@@ -69152,22 +73977,65 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(loggerMiddleware, 'loggerMiddleware', '/Users/yding/projects/authentication-demo-app/src/client/store/index.js');
+  __REACT_HOT_LOADER__.register(loggerMiddleware, 'loggerMiddleware', '/Users/yding/projects/authentication-demo-app/src/store/store.dev.js');
 
-  __REACT_HOT_LOADER__.register(store, 'store', '/Users/yding/projects/authentication-demo-app/src/client/store/index.js');
+  __REACT_HOT_LOADER__.register(preloadedState, 'preloadedState', '/Users/yding/projects/authentication-demo-app/src/store/store.dev.js');
 
-  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/client/store/index.js');
+  __REACT_HOT_LOADER__.register(store, 'store', '/Users/yding/projects/authentication-demo-app/src/store/store.dev.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/store/store.dev.js');
 }();
 
 ;
 
 /***/ }),
 
-/***/ "./src/client/utilities/index.js":
+/***/ "./src/store/store.prod.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = getParameterByName;
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_thunk__ = __webpack_require__("./node_modules/redux-thunk/lib/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux_thunk___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_redux_thunk__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux__ = __webpack_require__("./node_modules/redux/es/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__reducers__ = __webpack_require__("./src/reducers/index.js");
+
+
+
+
+var preloadedState = window.__PRELOADED_STATE__;
+delete window.__PRELOADED_STATE__;
+
+var store = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_redux__["b" /* createStore */])(__WEBPACK_IMPORTED_MODULE_2__reducers__["default"], preloadedState, __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_redux__["c" /* applyMiddleware */])(__WEBPACK_IMPORTED_MODULE_0_redux_thunk___default.a));
+
+var _default = store;
+/* harmony default export */ __webpack_exports__["default"] = _default;
+;
+
+var _temp = function () {
+  if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+    return;
+  }
+
+  __REACT_HOT_LOADER__.register(preloadedState, 'preloadedState', '/Users/yding/projects/authentication-demo-app/src/store/store.prod.js');
+
+  __REACT_HOT_LOADER__.register(store, 'store', '/Users/yding/projects/authentication-demo-app/src/store/store.prod.js');
+
+  __REACT_HOT_LOADER__.register(_default, 'default', '/Users/yding/projects/authentication-demo-app/src/store/store.prod.js');
+}();
+
+;
+
+/***/ }),
+
+/***/ "./src/utilities/index.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return getParameterByName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return localStorage; });
+/* unused harmony export resetId */
+/* unused harmony export generateId */
 function getParameterByName(name, url) {
   if (!url) {
     url = window.location.href;
@@ -69182,6 +74050,28 @@ function getParameterByName(name, url) {
   if (!results[2]) return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+var localStorage = void 0;
+if (typeof window === 'undefined' || window === null) {
+  localStorage = {
+    getItem: function getItem() {},
+    setItem: function setItem() {}
+  };
+} else {
+  localStorage = window.localStorage;
+}
+
+var count = 0;
+
+function resetId() {
+  count = 0;
+}
+
+function generateId() {
+  return 'element-id-' + count;
+}
+
+
 ;
 
 var _temp = function () {
@@ -69189,7 +74079,15 @@ var _temp = function () {
     return;
   }
 
-  __REACT_HOT_LOADER__.register(getParameterByName, 'getParameterByName', '/Users/yding/projects/authentication-demo-app/src/client/utilities/index.js');
+  __REACT_HOT_LOADER__.register(getParameterByName, 'getParameterByName', '/Users/yding/projects/authentication-demo-app/src/utilities/index.js');
+
+  __REACT_HOT_LOADER__.register(localStorage, 'localStorage', '/Users/yding/projects/authentication-demo-app/src/utilities/index.js');
+
+  __REACT_HOT_LOADER__.register(count, 'count', '/Users/yding/projects/authentication-demo-app/src/utilities/index.js');
+
+  __REACT_HOT_LOADER__.register(resetId, 'resetId', '/Users/yding/projects/authentication-demo-app/src/utilities/index.js');
+
+  __REACT_HOT_LOADER__.register(generateId, 'generateId', '/Users/yding/projects/authentication-demo-app/src/utilities/index.js');
 }();
 
 ;
@@ -69202,7 +74100,7 @@ var _temp = function () {
 __webpack_require__("./node_modules/react-hot-loader/patch.js");
 __webpack_require__("./node_modules/webpack-dev-server/client/index.js?http:/localhost:8080");
 __webpack_require__("./node_modules/webpack/hot/only-dev-server.js");
-module.exports = __webpack_require__("./index.js");
+module.exports = __webpack_require__("./src/index.js");
 
 
 /***/ })

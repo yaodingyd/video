@@ -8,12 +8,17 @@ module.exports = {
     'react-hot-loader/patch',
     'webpack-dev-server/client?http://localhost:8080',
     'webpack/hot/only-dev-server',
-    './src/client/index.js'
+    './src/index.js'
   ],
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/assets/'
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   watch: true,
   devServer: {
