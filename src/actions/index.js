@@ -1,7 +1,6 @@
 import { browserHistory } from 'react-router'
-import axios from 'axios'
 import _ from 'lodash'
-import { handleClientLoad, handleStatus, loadPlaylists } from '@/api'
+import { handleClientLoad, handleStatus, loadPlaylists, loadAllPlaylistsItems } from '@/api'
 
 export const LOGIN_INIT = 'LOGIN_INIT'
 export const LOGIN_REQUEST = 'LOGIN_REQUEST'
@@ -12,6 +11,8 @@ export const LOGOUT_SUCCESS = 'LOGOUT_SUCCESS'
 export const LOGOUT_FAILURE = 'LOGOUT_FAILURE'
 export const GET_PLAYLISTS = 'GET_PLAYLISTS'
 export const GET_PLAYLIST_ITEMS = 'GET_PLAYLIST_ITEMS'
+
+export const PLAY_VIDEO = 'PLAY_VIDEO'
 
 const loginInit = () => ({
   type: LOGIN_INIT
@@ -57,18 +58,13 @@ const playlists = (items) => ({
 
 export const getPlaylists = () => (dispatch) => {
   loadPlaylists((res) => {
-    const items = _.map(res.items, 'snippet')
-    dispatch(playlists(items))
-  })
-}
-
-export const getPlaylistItems = () => (dispatch) => {
-  axios.get('result.json')
-    .then((res) => {
-      const items = _.map(res.data.items, 'snippet')
-      console.log(items)
+    let lists = _.map(res.items, 'snippet')
+    dispatch(playlists(lists))
+    loadAllPlaylistsItems((res) => {
+      let items = _.map(res, 'items')
       dispatch(playlistItems(items))
     })
+  })
 }
 
 const playlistItems = (items) => ({
@@ -83,3 +79,8 @@ function updateSigninStatus (isSignedin) {
     browserHistory.push('/')
   }
 }
+
+export const playVideo = (videoId) => ({
+  type: PLAY_VIDEO,
+  videoId
+})

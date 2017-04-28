@@ -1,0 +1,22 @@
+body {
+  background: #101010;
+}
+
+.intro {
+  color: #fff;
+  text-align: left;
+  position: relative;
+  left: 10%;
+  top: 30vh;
+}
+
+.login {
+  margin-top: 3rem;
+  display: inline-block;
+  background: #f40612;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border: 1px solid #f40612;
+  border-radius: 2px;
+  box-shadow: 1px 1px 1px 1px gray;
+}

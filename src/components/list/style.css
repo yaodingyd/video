@@ -1,0 +1,17 @@
+.container {
+  margin: 1rem auto;
+}
+
+.title {
+  size: 2rem;
+  color: #fff;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  width: calc(100vw - 80px);
+  box-sizing: border-box;
+  justify-content: space-between;
+}
