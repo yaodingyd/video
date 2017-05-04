@@ -3,7 +3,11 @@ import style from './style.css'
 
 function Spinner () {
   return (
-    <div className={style.loader} />
+    <div className={style.backdrop}>
+      <div className={style.container}>
+        <div className={style.loader} />
+      </div>
+    </div>
   )
 }
 

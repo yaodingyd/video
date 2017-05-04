@@ -1,26 +1,29 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import List from '@/components/list'
-import Player from '@/components/player'
 import { getPlaylists } from '@/actions'
 
 class Playlist extends Component {
   componentDidMount () {
-    this.props.loadPlaylist()
+    const { playlists } = this.props
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+      this.props.loadPlaylist()
+    }
   }
 
   render () {
-    const { playlistItems, playlists, videoId } = this.props
+    const { playlistItems, playlists } = this.props
     return (
       <div>
-        <h1>playlists</h1>
-        { playlists.map((item, index) => (
-          <div key={item.title}>
-            <h2>{item.title}</h2>
-            <List listItems={playlistItems[index]} />
-          </div>
-        ))}
-        <Player videoId={videoId} />
+        { playlists.map((item, index) => {
+          if (Array.isArray(playlistItems[index]) && playlistItems[index].length > 0) {
+            return (
+              <div key={item.title}>
+                <List listTitle={item.title} listItems={playlistItems[index]} />
+              </div>
+            )
+          }
+        })}
       </div>
     )
   }

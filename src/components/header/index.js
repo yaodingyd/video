@@ -1,10 +1,9 @@
 import React from 'react'
 import { Navbar, Nav, NavItem } from 'react-bootstrap'
-import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router'
 import Logo from '../logo'
 
-function Header () {
+function Header ({channelTitle, handleLogout}) {
   return (
     <Navbar inverse>
       <Navbar.Header>
@@ -16,11 +15,12 @@ function Header () {
         <Navbar.Toggle />
       </Navbar.Header>
       <Navbar.Collapse>
-        <Nav pullRight>
-          <LinkContainer to={'/login'}>
-            <NavItem eventKey={1}>Log In</NavItem>
-          </LinkContainer>
-        </Nav>
+        { channelTitle && (
+          <Nav pullRight>
+            <NavItem eventKey={1}>{channelTitle}</NavItem>
+            <NavItem eventKey={2} onClick={handleLogout}>Log Out</NavItem>
+          </Nav>
+        )}
       </Navbar.Collapse>
     </Navbar>
   )

@@ -2,38 +2,20 @@
 
 const path = require('path')
 const webpack = require('webpack')
+const rootPath = require('../config').rootPath
 
 module.exports = {
-  entry: [
-    'react-hot-loader/patch',
-    'webpack-dev-server/client?http://localhost:8080',
-    'webpack/hot/only-dev-server',
-    './src/index.js'
-  ],
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(rootPath, 'dist'),
     filename: 'bundle.js',
-    publicPath: '/assets/'
+    publicPath: '/tubeflix/'
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')
+      '@': path.resolve(rootPath, 'src')
     }
   },
-  watch: true,
-  devServer: {
-    inline: true,
-    hot: true,
-    contentBase: './dist',
-    stats: {
-      chunks: false,
-      children: false,
-      color: true
-    }
-  },
-  devtool: 'source-map',
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin()
   ],
   module: {

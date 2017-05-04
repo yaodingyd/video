@@ -1,0 +1,23 @@
+.container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 1050;
+  background: #000;
+}
+
+.player {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.back {
+  color: #fff;
+  font-size: 2rem;
+  display: inline-block;
+  margin: 1rem;
+}

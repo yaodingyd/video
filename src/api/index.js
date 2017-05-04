@@ -54,7 +54,7 @@ export function loadPlaylists (cb) {
 
 export function loadPlaylistItems (id, cb) {
   gapi.client.youtube.playlistItems
-    .list({ part: 'snippet', playlistId: id, maxResults: 5 })
+    .list({ part: 'snippet', playlistId: id, maxResults: 20 })
     .execute(function (res) {
       cb(res)
     })

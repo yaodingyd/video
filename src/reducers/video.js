@@ -1,9 +1,9 @@
-import { GET_PLAYLIST_ITEMS, GET_PLAYLISTS, PLAY_VIDEO } from '../actions'
+import { GET_PLAYLIST_ITEMS, GET_PLAYLISTS, PLAY_VIDEO, GET_CHANNEL_TITLE, LOGOUT_SUCCESS } from '../actions'
 
 const video = (state = {
   playlists: [],
   playlistItems: [],
-  videoId: ''
+  channelTitle: ''
 }, action) => {
   switch (action.type) {
     case GET_PLAYLISTS:
@@ -20,6 +20,17 @@ const video = (state = {
       return {
         ...state,
         videoId: action.videoId
+      }
+    case GET_CHANNEL_TITLE:
+      return {
+        ...state,
+        channelTitle: action.channelTitle
+      }
+    case LOGOUT_SUCCESS:
+      return {
+        playlists: [],
+        playlistItems: [],
+        channelTitle: ''
       }
     default:
       return state

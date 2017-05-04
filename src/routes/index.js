@@ -1,22 +1,16 @@
 import React from 'react'
 import { Route, IndexRoute } from 'react-router'
 
-import AuthedApp from '../apps/authedApp'
-import UnauthedApp from '../apps/unauthedApp'
-
-import Welcome from '../containers/welcome'
-// import Login from '../containers/login'
-import Play from '@/containers/playlists'
+import AppContainer from '@/containers/appContainer'
+import Welcome from '@/containers/welcome'
+import Playlists from '@/containers/playlists'
+import Player from '@/components/player'
 
 const routes = (
-  <Route>
-    <Route path='/' component={UnauthedApp}>
-      <IndexRoute component={Welcome} />
-      <Route path='login' component={Welcome} />
-    </Route>
-    <Route path='/playlists' component={AuthedApp}>
-      <IndexRoute component={Play} />
-    </Route>
+  <Route path='/' component={AppContainer}>
+    <IndexRoute component={Welcome} />
+    <Route path='/playlists' component={Playlists} />
+    <Route path='/video/:videoId' component={Player} />
   </Route>
 )
 

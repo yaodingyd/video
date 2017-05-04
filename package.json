@@ -1,5 +1,5 @@
 {
-  "name": "authentication-demo-app",
+  "name": "tubeflix",
   "version": "0.0.1",
   "description": "A demo on node authentication",
   "main": "index.js",
@@ -8,7 +8,8 @@
     "type": "git"
   },
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --config webpack/webpack.dev.config.js",
+    "prod":  "webpack --config webpack/webpack.prod.config.js",
     "deploy": "gh-pages -d dist"
   },
   "author": "yding",
@@ -69,6 +70,7 @@
     "stylelint-config-standard": "^16.0.0",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.4.1",
+    "webpack-merge": "^4.1.0",
     "webpack-node-externals": "^1.5.4"
   }
 }

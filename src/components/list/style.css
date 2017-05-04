@@ -9,7 +9,9 @@
 
 .list {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: no-wrap;
+  flex-direction: row;
+  overflow-y: scroll;
   margin: 20px 0;
   width: calc(100vw - 80px);
   box-sizing: border-box;
