@@ -4,7 +4,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import { Link } from 'react-router'
 import Logo from '../logo'
 
-function UnauthedHeader () {
+function Header () {
   return (
     <Navbar inverse>
       <Navbar.Header>
@@ -20,13 +20,10 @@ function UnauthedHeader () {
           <LinkContainer to={'/login'}>
             <NavItem eventKey={1}>Log In</NavItem>
           </LinkContainer>
-          <LinkContainer to={'/signup'}>
-            <NavItem eventKey={2}>Sign Up</NavItem>
-          </LinkContainer>
         </Nav>
       </Navbar.Collapse>
     </Navbar>
   )
 }
 
-export default UnauthedHeader
+export default Header
