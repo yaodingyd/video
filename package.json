@@ -10,7 +10,7 @@
   "scripts": {
     "start": "webpack-dev-server --config webpack/webpack.dev.config.js",
     "prod":  "webpack --config webpack/webpack.prod.config.js",
-    "deploy": "gh-pages -d dist"
+    "deploy": "surge -p dist -d tubeflix.surge.sh"
   },
   "author": "yding",
   "license": "MIT",
