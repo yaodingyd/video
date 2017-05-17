@@ -14,7 +14,7 @@ class Playlist extends Component {
   render () {
     const { playlistItems, playlists } = this.props
     return (
-      <div>
+      <div className='container'>
         { playlists.map((item, index) => {
           if (Array.isArray(playlistItems[index]) && playlistItems[index].length > 0) {
             return (

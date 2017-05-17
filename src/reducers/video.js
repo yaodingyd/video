@@ -2,7 +2,7 @@ import { GET_PLAYLIST_ITEMS, GET_PLAYLISTS, PLAY_VIDEO, GET_CHANNEL_TITLE, LOGOU
 
 const video = (state = {
   playlists: [],
-  playlistItems: [],
+  playlistItems: {},
   channelTitle: ''
 }, action) => {
   switch (action.type) {
@@ -29,7 +29,7 @@ const video = (state = {
     case LOGOUT_SUCCESS:
       return {
         playlists: [],
-        playlistItems: [],
+        playlistItems: {},
         channelTitle: ''
       }
     default:

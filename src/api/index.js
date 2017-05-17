@@ -62,15 +62,17 @@ export function loadPlaylistItems (id, cb) {
 
 export function loadAllPlaylistsItems (cb) {
   let items = []
+  let count = 0
   let unsuccessful = 0
-  ids.forEach((id) => {
+  ids.forEach((id, index) => {
     loadPlaylistItems(id, (item) => {
       if (item !== null) {
-        items.push(item)
+        items[index] = item
+        count++
       } else {
         unsuccessful++
       }
-      if (items.length >= ids.length - unsuccessful) {
+      if (count >= ids.length - unsuccessful) {
         cb(items)
       }
     })
