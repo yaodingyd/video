@@ -1,5 +1,6 @@
 .container {
   margin: 1rem auto;
+  overflow: hidden;
 }
 
 .title {
@@ -11,7 +12,8 @@
   display: flex;
   flex-wrap: no-wrap;
   flex-direction: row;
-  overflow-y: scroll;
+  overflow-x: scroll;
+  overflow-y: hidden;
   margin: 20px 0;
   width: calc(100vw - 80px);
   box-sizing: border-box;

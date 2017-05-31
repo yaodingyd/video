@@ -9,8 +9,9 @@
   },
   "scripts": {
     "start": "webpack-dev-server --config webpack/webpack.dev.config.js",
-    "prod":  "webpack --config webpack/webpack.prod.config.js",
-    "deploy": "surge -p dist -d tubeflix.surge.sh"
+    "prod": "webpack --config webpack/webpack.prod.config.js",
+    "deploy": "surge -p dist -d tubeflix.surge.sh",
+    "surge": "npm run prod && npm run deploy"
   },
   "author": "yding",
   "license": "MIT",
@@ -22,6 +23,7 @@
     "bootstrap": "^3.3.7",
     "express": "^4.14.1",
     "express-jwt": "^5.1.0",
+    "file-loader": "^0.11.1",
     "history": "^4.5.1",
     "json-loader": "^0.5.4",
     "jsonwebtoken": "^7.3.0",
