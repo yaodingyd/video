@@ -3,7 +3,7 @@ module.exports = {
     require('postcss-smart-import')(),
     require('precss')(),
     require('autoprefixer')(),
-    require('stylelint')(),
+    // require('stylelint')(),
     require('postcss-reporter')({
       clearReportedMessages: true
     })

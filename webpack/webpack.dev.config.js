@@ -5,6 +5,11 @@ const rootPath = require('../config').rootPath
 const baseConfig = require('./webpack.base.config')
 
 module.exports = merge(baseConfig, {
+  output: {
+    path: path.resolve(rootPath),
+    filename: 'bundle.js',
+    publicPath: '/tubeflix/'
+  },
   entry: [
     'react-hot-loader/patch',
     'webpack-dev-server/client?http://localhost:8080',
@@ -18,7 +23,7 @@ module.exports = merge(baseConfig, {
   devServer: {
     inline: true,
     hot: true,
-    contentBase: path.resolve(rootPath, 'dist'),
+    contentBase: path.resolve(rootPath),
     stats: {
       chunks: false,
       children: false,

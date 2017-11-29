@@ -5,6 +5,10 @@ const baseConfig = require('./webpack.base.config')
 const rootPath = require('../config').rootPath
 
 module.exports = merge(baseConfig, {
+  output: {
+    path: path.resolve(rootPath, 'dist'),
+    filename: 'bundle.js'
+  },
   entry: path.resolve(rootPath, 'src/index.js'),
   devtool: 'sourcemap',
   plugins: [
