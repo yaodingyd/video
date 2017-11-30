@@ -10,8 +10,8 @@
   "scripts": {
     "start": "webpack-dev-server --config webpack/webpack.dev.config.js",
     "prod": "webpack --config webpack/webpack.prod.config.js",
-    "deploy": "surge -p dist -d tubeflix.surge.sh",
-    "surge": "npm run prod && npm run deploy"
+    "surge": "surge -p dist -d tubeflix.surge.sh",
+    "deploy": "npm run prod && npm run deploy"
   },
   "author": "yding",
   "license": "MIT",
