@@ -28,6 +28,11 @@ module.exports = merge(baseConfig, {
       chunks: false,
       children: false,
       color: true
+    },
+    historyApiFallback: {
+      rewrites: [
+        { from: /^\/playlists*/, to: '/' }
+      ]
     }
   },
   devtool: 'source-map',
