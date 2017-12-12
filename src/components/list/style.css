@@ -1,6 +1,6 @@
 .container {
   margin: 1rem auto;
-  overflow: hidden;
+  position: relative;
 }
 
 .title {
@@ -10,12 +10,55 @@
 
 .list {
   display: flex;
-  flex-wrap: no-wrap;
-  flex-direction: row;
-  overflow-x: scroll;
-  overflow-y: hidden;
+  position: relative;
+  flex-flow: row no-wrap;
+  overflow: hidden;
   margin: 20px 0;
   width: calc(100vw - 80px);
   max-width: 1160px;
   box-sizing: border-box;
+}
+
+.next,
+.prev {
+  top: 50%;
+  border: none;
+  background: transparent;
+  position: absolute;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  transform: scale(2, 3);
+  transition: opacity 0.5s;
+
+  &:focus {
+    outline: none;
+  }
+
+  @media (max-width: 1180px) {
+    position: static;
+    display: inline-block;
+    margin: 0 2rem;
+  }
+}
+
+.prev {
+  left: -50px;
+}
+
+.next {
+  right: -50px;
+}
+
+.disable {
+  opacity: 0;
+}
+
+.enter {
+  opacity: 0.01;
+}
+
+.enter.enterActive {
+  opacity: 1;
+  transition: all 500ms linear;
 }
