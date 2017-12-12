@@ -48,8 +48,8 @@ class List extends Component {
     return (
       <div className={style.container}>
         <h1 className={style.title}>{listTitle}</h1>
-        <button type='button' onClick={this.getPrev} className={min === 0 ? `${style.disable} ${style.prev}`: style.prev}>&lt;</button>
-        <button type='button' onClick={this.getNext} className={max === listmax ? `${style.disable} ${style.next}`: style.next}>&gt;</button>
+        <button type='button' onClick={this.getPrev} className={min === 0 ? `${style.disable} ${style.prev}` : style.prev}>&lt;</button>
+        <button type='button' onClick={this.getNext} className={max === listmax ? `${style.disable} ${style.next}` : style.next}>&gt;</button>
         <div className={style.list}>
           { listItems.map((item, index) => {
             let transitionIn = index >= min && index <= max
